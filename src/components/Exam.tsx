@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, BookOpen, Timer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Timer, PlayCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ExamSetup from './ExamSetup';
 
 interface Question {
@@ -7,6 +8,13 @@ interface Question {
   text: string;
   options: string[];
   correctAnswers: string[];
+}
+
+interface TestResult {
+  totalQuestions: number;
+  goodAnswers: number;
+  percentage: number;
+  totalTime: string;
 }
 
 const allQuestions: Question[] = [
@@ -38,6 +46,9 @@ function Exam() {
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (timeRemaining > 0 && examStarted) {
@@ -50,6 +61,7 @@ function Exam() {
       // End exam when time runs out
       setExamStarted(false);
       setShowResult(true);
+      saveTestResult();
     }
   }, [timeRemaining, examStarted]);
 
@@ -100,6 +112,18 @@ function Exam() {
       setSelectedAnswers([]);
       setShowResult(false);
     }
+  };
+
+  const saveTestResult = () => {
+    const totalQuestions = questions.length;
+    const goodAnswers = score;
+    const percentage = (goodAnswers / totalQuestions) * 100;
+    const totalTime = formatTime(timeRemaining);
+    setTestResults([...testResults, { totalQuestions, goodAnswers, percentage, totalTime }]);
+  };
+
+  const handleStartNewTest = () => {
+    navigate('/exam-setup');
   };
 
   if (showSetup) {
@@ -170,6 +194,11 @@ function Exam() {
             <p className="text-gray-700">
               The correct answers are: {currentQuestion.correctAnswers.join(', ')}
             </p>
+            {selectedAnswers.some(answer => !currentQuestion.correctAnswers.includes(answer)) && (
+              <p className="text-red-600 mt-2">
+                Incorrect answers: {selectedAnswers.filter(answer => !currentQuestion.correctAnswers.includes(answer)).join(', ')}
+              </p>
+            )}
           </div>
         )}
 
@@ -210,6 +239,32 @@ function Exam() {
             <ChevronRight size={20} />
           </button>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <button
+          onClick={handleStartNewTest}
+          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-blue-700 w-full bg-blue-600 text-white"
+        >
+          <PlayCircle size={20} />
+          <span>Start new test</span>
+        </button>
+      </div>
+
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold mb-3">Previous Tests</h2>
+        {testResults.length > 0 ? (
+          testResults.map((result, index) => (
+            <div key={index} className="p-2 rounded-lg hover:bg-blue-700 mb-2">
+              <p>Total Questions: {result.totalQuestions}</p>
+              <p>Good Answers: {result.goodAnswers}</p>
+              <p>Percentage: {result.percentage.toFixed(2)}%</p>
+              <p>Total Time: {result.totalTime}</p>
+            </div>
+          ))
+        ) : (
+          <p>No previous tests available.</p>
+        )}
       </div>
     </div>
   );

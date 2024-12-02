@@ -6,8 +6,8 @@ interface ExamSetupProps {
 }
 
 function ExamSetup({ onStart }: ExamSetupProps) {
-  const [duration, setDuration] = useState(10);
-  const [questionCount, setQuestionCount] = useState(10);
+  const [duration, setDuration] = useState(1); // Minimum duration set to 1 minute
+  const [questionCount, setQuestionCount] = useState(1); // Minimum question count set to 1
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +27,7 @@ function ExamSetup({ onStart }: ExamSetupProps) {
             <div className="flex items-center space-x-2">
               <input
                 type="range"
-                min="5"
+                min="1"
                 max="60"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
@@ -42,7 +42,7 @@ function ExamSetup({ onStart }: ExamSetupProps) {
             <div className="flex items-center space-x-2">
               <input
                 type="range"
-                min="5"
+                min="1"
                 max="30"
                 value={questionCount}
                 onChange={(e) => setQuestionCount(Number(e.target.value))}
