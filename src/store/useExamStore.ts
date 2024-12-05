@@ -1,74 +1,70 @@
 import { create } from 'zustand';
-import { Question, UserProgress } from '../types/question';
+import { Question } from '../types/question';
 
-interface ExamStore {
-  currentQuestion: Question | null;
+interface ExamState {
   questions: Question[];
-  userProgress: UserProgress;
+  currentQuestion: Question | null;
+  selectedAnswers: Record<string, number>;
+  examConfig: {
+    duration: number;
+    questionCount: number;
+  };
   isLoading: boolean;
-  setCurrentQuestion: (question: Question) => void;
-  setQuestions: (questions: Question[]) => void;
-  updateProgress: (questionId: string, score: number) => void;
-  loadQuestions: () => Promise<void>;
+  examStarted: boolean;
+  timeRemaining: number;
+  isSubmitted: boolean;
+  correctAnswers: number;
 }
 
-export const useExamStore = create<ExamStore>((set, get) => ({
-  currentQuestion: null,
+interface ExamActions {
+  setQuestions: (questions: Question[]) => void;
+  setCurrentQuestion: (question: Question | null) => void;
+  setAnswer: (questionId: string, answer: number) => void;
+  startExam: (config: { duration: number; questionCount: number }) => void;
+  endExam: () => void;
+  setTimeRemaining: (time: number) => void;
+  setIsSubmitted: (value: boolean) => void;
+  setCorrectAnswers: (count: number) => void;
+  calculateScore: () => void;  
+}
+
+export const useExamStore = create<ExamState & ExamActions>((set) => ({
   questions: [],
-  userProgress: {
-    userId: 'default',
-    completedQuestions: [],
-    scores: [],
+  currentQuestion: null,
+  selectedAnswers: {},
+  examConfig: {
+    duration: 10,
+    questionCount: 10,
   },
   isLoading: false,
+  examStarted: false,
+  timeRemaining: 0,
+  isSubmitted: false,
+  correctAnswers: 0,
 
-  setCurrentQuestion: (question) => set({ currentQuestion: question }),
-  
   setQuestions: (questions) => set({ questions }),
-  
-  updateProgress: (questionId, score) => {
-    const { userProgress } = get();
+  setCurrentQuestion: (question) => set({ currentQuestion: question }),
+  setAnswer: (questionId, answer) =>
+    set((state) => ({
+      selectedAnswers: { ...state.selectedAnswers, [questionId]: answer },
+    })),
+  startExam: (config) =>
     set({
-      userProgress: {
-        ...userProgress,
-        completedQuestions: [...userProgress.completedQuestions, questionId],
-        scores: [
-          ...userProgress.scores,
-          {
-            questionId,
-            score,
-            timestamp: new Date(),
-          },
-        ],
-      },
-    });
-  },
-
-  loadQuestions: async () => {
-    set({ isLoading: true });
-    try {
-      // TODO: Replace with actual API call
-      const mockQuestions: Question[] = [
-        {
-          id: "1",
-          category: "Architecture",
-          question: "What is the primary advantage of using SAP's cloud platform for enterprise applications?",
-          options: [
-            "Lower initial infrastructure costs",
-            "Increased system complexity",
-            "Reduced scalability options",
-            "Higher maintenance requirements"
-          ],
-          correctAnswer: 0,
-          explanation: "SAP's cloud platform significantly reduces initial infrastructure costs by eliminating the need for on-premises hardware and providing pay-as-you-go pricing models.",
-          difficulty: 2,
-          tags: ["cloud", "infrastructure", "costs"]
-        },
-        // Add more mock questions here
-      ];
-      set({ questions: mockQuestions });
-    } finally {
-      set({ isLoading: false });
-    }
+      examStarted: true,
+      examConfig: config,
+      timeRemaining: config.duration,
+      isSubmitted: false,
+      correctAnswers: 0,
+    }),
+  endExam: () => set({ examStarted: false, selectedAnswers: {}, isSubmitted: false, correctAnswers: 0,}),
+  setTimeRemaining: (time) => set({ timeRemaining: time }),
+  setIsSubmitted: (value) => set({ isSubmitted: value }),
+  setCorrectAnswers: (count) => set({ correctAnswers: count }),
+  calculateScore: () => {
+    const { questions, selectedAnswers } = get();
+    const correct = questions.filter(q => 
+      selectedAnswers[q.id] === q.correctAnswer
+    ).length;
+    set({ correctAnswers: correct, isSubmitted: true });
   },
 }));

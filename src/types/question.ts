@@ -6,7 +6,8 @@ export interface Question {
   correctAnswer: number;
   explanation: string;
   difficulty: number;
-  tags: string[];
+  isPremium?: boolean;
+  tags?: string[];
 }
 
 export interface UserProgress {
