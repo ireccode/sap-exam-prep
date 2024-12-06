@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useExamStore } from '@/store/useExamStore';
 import { questionBank } from '@/services/questionBank';
 import { QuestionCard } from './QuestionCard';
 import { ExamSetup } from './ExamSetup';
 import { Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useProgressStore } from '@/store/useProgressStore';
 
 export function MiniExam() {
   const {
@@ -22,65 +23,39 @@ export function MiniExam() {
     correctAnswers,
     setIsSubmitted,
     setCorrectAnswers,
+    decrementTimer
   } = useExamStore();
+
+  const { addExamResult } = useProgressStore();
+  const [examStartTime, setExamStartTime] = useState<Date>();
 
   useEffect(() => {
     const loadQuestions = async () => {
-      console.log('Initializing question bank...');
-      try {
-        await questionBank.initialize();
-        const loadedQuestions = await questionBank.getRandomQuestions(3);
-        console.log('Initial questions loaded:', loadedQuestions);
-      } catch (error) {
-        console.error('Failed to initialize question bank:', error);
-      }
+      await questionBank.initialize();
     };
     loadQuestions();
   }, []);
 
   const handleStartExam = async (config: { duration: number; questionCount: number }) => {
-    console.log('Starting exam with config:', config);
-    const examQuestions = await questionBank.getRandomQuestions(config.questionCount);
-    console.log('Loaded exam questions:', examQuestions);
+    const examQuestions = questionBank.getAdaptiveQuestions(config.questionCount);
     setQuestions(examQuestions);
     setCurrentQuestion(examQuestions[0]);
-    startExam({
-      ...config,
-      duration: config.duration * 60 // Convert minutes to seconds
-    });
+    setTimeRemaining(config.duration * 60);
+    setExamStartTime(new Date());
+    startExam(config);
   };
-  
+
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (examStarted && timeRemaining > 0 && !isSubmitted) {
+    let timer: NodeJS.Timeout | null = null;
+    if (examStarted && !isSubmitted && timeRemaining > 0) {
       timer = setInterval(() => {
-        setTimeRemaining((prevTime) => {
-          if (prevTime <= 0) {
-            clearInterval(timer);
-            handleSubmit();
-            return 0;
-          }
-          return prevTime - 1;
-        });
+        decrementTimer();
       }, 1000);
     }
-  
     return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
+      if (timer) clearInterval(timer);
     };
-  }, [examStarted, isSubmitted]); 
-
-
-  useEffect(() => {
-    console.log('Exam state updated:', {
-      examStarted,
-      questions: questions.length,
-      currentQuestion: currentQuestion?.id
-    });
-  }, [examStarted, questions, currentQuestion]);
+  }, [examStarted, isSubmitted, timeRemaining]);  
 
   const currentIndex = currentQuestion ? questions.indexOf(currentQuestion) : -1;
 
@@ -106,6 +81,30 @@ export function MiniExam() {
     ).length;
     setCorrectAnswers(correct);
     setIsSubmitted(true);
+
+    // Record exam history
+    if (examStartTime) {
+      const timeSpent = Math.floor((new Date().getTime() - examStartTime.getTime()) / 1000);
+      const questionResults = questions.reduce((acc, q) => ({
+        ...acc,
+        [q.id]: selectedAnswers[q.id] === q.correctAnswer
+      }), {});
+
+      addExamResult({
+        id: Date.now().toString(),
+        date: new Date(),
+        score: correct,
+        totalQuestions: questions.length,
+        timeSpent,
+        questionResults
+      });
+
+      // Update progress for each question
+      questions.forEach(q => {
+        const isCorrect = selectedAnswers[q.id] === q.correctAnswer;
+        useProgressStore.getState().updateProgress(q.category, q.id, isCorrect);
+      });
+    }
   };
 
   if (!examStarted) {
@@ -119,7 +118,6 @@ export function MiniExam() {
           Question {currentIndex + 1} of {questions.length}
         </div>
         
-        {/* Add centered score */}
         {isSubmitted && (
           <div className="text-lg font-semibold">
             Score: {correctAnswers}/{questions.length} ({Math.round(correctAnswers/questions.length * 100)}%)

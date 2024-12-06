@@ -25,7 +25,8 @@ interface ExamActions {
   setTimeRemaining: (time: number) => void;
   setIsSubmitted: (value: boolean) => void;
   setCorrectAnswers: (count: number) => void;
-  calculateScore: () => void;  
+  calculateScore: () => void;
+  decrementTimer: () => void;
 }
 
 export const useExamStore = create<ExamState & ExamActions>((set) => ({
@@ -67,4 +68,7 @@ export const useExamStore = create<ExamState & ExamActions>((set) => ({
     ).length;
     set({ correctAnswers: correct, isSubmitted: true });
   },
+  decrementTimer: () => set((state) => ({ 
+    timeRemaining: Math.max(0, state.timeRemaining - 1) 
+  })),  
 }));

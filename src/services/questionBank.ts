@@ -1,4 +1,5 @@
 import { Question } from '../types/question';
+import { useProgressStore } from '@/store/useProgressStore';
 
 export interface QuestionFilters {
   categories?: string[];
@@ -22,7 +23,6 @@ class QuestionBankService {
         ...q,
         isPremium: false
       }));
-       console.log('Loaded basic questions:', this.basicQuestions.length); // Debug log
 
       // Load premium questions
       const premiumResponse = await fetch('/premium_btp_query_bank.json');
@@ -31,7 +31,6 @@ class QuestionBankService {
         ...q,
         isPremium: true
       }));
-       console.log('Loaded premium questions:', this.premiumQuestions.length); // Debug log
 
       this.initialized = true;
     } catch (error) {
@@ -60,20 +59,39 @@ class QuestionBankService {
     return Array.from(new Set(allQuestions.map(q => q.category))).sort();
   }
 
-  getRandomQuestions(count: number, filters: QuestionFilters = {}): Question[] {
-  if (!this.initialized || (this.basicQuestions.length === 0 && this.premiumQuestions.length === 0)) {
-    console.warn('Question bank not initialized or empty');
-    return [];
+  getCategoryCount(category: string, includesPremium: boolean = false): number {
+    return this.getQuestionsByCategory(category, { isPremium: includesPremium }).length;
   }
 
-  const allQuestions = this.getAllQuestions(filters.isPremium);
-  console.log('Available questions for random selection:', allQuestions.length); // Debug log
-  
-  let filteredQuestions = allQuestions.filter(q => 
-    (!filters.categories?.length || filters.categories.includes(q.category))
-  );
+  getAdaptiveQuestions(count: number, filters: QuestionFilters = {}): Question[] {
+    const progressStore = useProgressStore.getState();
+    const weakAreas = progressStore.getWeakAreas();
+    const allQuestions = this.getAllQuestions(filters.isPremium);
+    
+    // Prioritize questions from weak areas
+    const weakAreaQuestions = allQuestions.filter(q => 
+      weakAreas.includes(q.category) &&
+      (!filters.categories?.length || filters.categories.includes(q.category))
+    );
 
-  return this.shuffleArray(filteredQuestions).slice(0, Math.min(count, filteredQuestions.length));
+    // Get remaining questions if needed
+    const remainingCount = count - weakAreaQuestions.length;
+    let otherQuestions: Question[] = [];
+    
+    if (remainingCount > 0) {
+      otherQuestions = allQuestions.filter(q => 
+        !weakAreas.includes(q.category) &&
+        (!filters.categories?.length || filters.categories.includes(q.category))
+      );
+    }
+
+    // Combine and shuffle
+    const combinedQuestions = [
+      ...this.shuffleArray(weakAreaQuestions),
+      ...this.shuffleArray(otherQuestions)
+    ];
+
+    return combinedQuestions.slice(0, count);
   }
 
   private shuffleArray<T>(array: T[]): T[] {

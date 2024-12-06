@@ -3,10 +3,45 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/layout/Header';
 import { BottomNav } from './components/mobile/BottomNav';
 import { AIChat } from './components/chat/AIChat';
-import { TrainingModule } from './components/training/TrainingModule';
 import { MiniExam } from './components/exam/MiniExam';
+import { useEffect } from 'react';
+import { questionBank } from '@/services/questionBank';
+import { TrainingDeck } from './components/training/TrainingDeck';
+import { useProgressStore } from '@/store/useProgressStore';
 
-function App() {
+export function App() {
+  const initializeApp = async () => {
+    try {
+      // Initialize question bank first
+      await questionBank.initialize();
+      
+      // Reset progress store
+      const progressStore = useProgressStore.getState();
+      progressStore.categoryProgress = {};
+      progressStore.examHistory = [];
+      
+      // Get categories after reset
+      const categories = questionBank.getCategories();
+      
+      // Initialize empty progress for each category
+      categories.forEach(category => {
+        progressStore.categoryProgress[category] = {
+          completedCount: 0,
+          correctCount: 0,
+          answeredQuestions: {},
+          weakAreas: [],
+          strengths: []
+        };
+      });
+    } catch (error) {
+      console.error('Failed to initialize app:', error);
+    }
+  };
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
@@ -35,38 +70,6 @@ function Home() {
         Your comprehensive preparation platform for SAP Architect certification exams.
         Choose from our training deck, practice with mini exams, or get help from our AI assistant.
       </p>
-    </div>
-  );
-}
-
-function TrainingDeck() {
-  const modules = [
-    {
-      title: "SAP Architecture Fundamentals",
-      description: "Learn the core concepts of SAP architecture and system design principles.",
-      progress: 65,
-    },
-    {
-      title: "Integration Patterns",
-      description: "Master various integration patterns and their implementation in SAP systems.",
-      progress: 30,
-    },
-    {
-      title: "Security & Compliance",
-      description: "Understand SAP security architecture and compliance requirements.",
-      progress: 45,
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20 md:pb-0">
-      {modules.map((module, index) => (
-        <TrainingModule
-          key={index}
-          {...module}
-          onStart={() => console.log(`Starting module: ${module.title}`)}
-        />
-      ))}
     </div>
   );
 }
