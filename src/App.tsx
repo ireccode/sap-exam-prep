@@ -9,21 +9,74 @@ import { questionBank } from '@/services/questionBank';
 import { TrainingDeck } from './components/training/TrainingDeck';
 import { useProgressStore } from '@/store/useProgressStore';
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 m-4 bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="text-red-800 font-bold mb-2">Something went wrong</h2>
+          <p className="text-red-600">{this.state.error?.message}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={() => this.setState({ hasError: false })}
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Wrap components that might throw errors with ErrorBoundary
+const SafeAIChat = () => (
+  <ErrorBoundary>
+    <AIChat />
+  </ErrorBoundary>
+);
+
+const SafeMiniExam = () => (
+  <ErrorBoundary>
+    <MiniExam />
+  </ErrorBoundary>
+);
+
+const SafeTrainingDeck = () => (
+  <ErrorBoundary>
+    <TrainingDeck />
+  </ErrorBoundary>
+);
+
 export function App() {
   const initializeApp = async () => {
     try {
-      // Initialize question bank first
       await questionBank.initialize();
       
-      // Reset progress store
       const progressStore = useProgressStore.getState();
       progressStore.categoryProgress = {};
       progressStore.examHistory = [];
       
-      // Get categories after reset
       const categories = questionBank.getCategories();
       
-      // Initialize empty progress for each category
       categories.forEach(category => {
         progressStore.categoryProgress[category] = {
           completedCount: 0,
@@ -45,16 +98,20 @@ export function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <ErrorBoundary>
+          <Header />
+        </ErrorBoundary>
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/training" element={<TrainingDeck />} />
-            <Route path="/mini-exam" element={<MiniExam />} />
-            <Route path="/ai-chat" element={<AIChat />} />
+            <Route path="/training" element={<SafeTrainingDeck />} />
+            <Route path="/mini-exam" element={<SafeMiniExam />} />
+            <Route path="/ai-chat" element={<SafeAIChat />} />
           </Routes>
         </main>
-        <BottomNav />
+        <ErrorBoundary>
+          <BottomNav />
+        </ErrorBoundary>
       </div>
     </Router>
   );
