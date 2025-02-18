@@ -2,23 +2,25 @@ import React, { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { AIService } from '@/services/aiService';
 import { MODELS } from '@/services/aiConfig';
+import ReactMarkdown from 'react-markdown';
 
 const ragContext = {
   getRelevantContext: (question: string) => {
     return '';
-  }
+  },
 };
 
 export function AIChat() {
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [messages, setMessages] = useState<
+    Array<{ role: 'user' | 'assistant'; content: string }>
+  >([]);
   const [input, setInput] = useState('');
   const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
-  
+
   // Use Vite's import.meta.env instead of process.env
-  const aiService = useRef(new AIService(
-    import.meta.env.VITE_OPENROUTER_API_KEY || '',
-    ragContext
-  ));
+  const aiService = useRef(
+    new AIService(import.meta.env.VITE_OPENROUTER_API_KEY || '', ragContext)
+  );
 
   const handleModelChange = async (modelId: string) => {
     await aiService.current.setModel(modelId);
@@ -27,32 +29,29 @@ export function AIChat() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-  
+
     const newMessages = [
       ...messages,
-      { role: 'user' as const, content: input }
+      { role: 'user' as const, content: input },
     ];
     setMessages(newMessages);
     setInput('');
-  
+
     try {
       const response = await aiService.current.getExplanation(input);
-      setMessages([
-        ...newMessages,
-        { role: 'assistant', content: response }
-      ]);
+      setMessages([...newMessages, { role: 'assistant', content: response }]);
     } catch (error) {
       console.error('Failed to get response:', error);
       setMessages([
         ...newMessages,
-        { 
-          role: 'assistant', 
-          content: 'Sorry, there was an error processing your request. The model might be temporarily unavailable. Please try another model or try again later.'
-        }
+        {
+          role: 'assistant',
+          content:
+            'Sorry, there was an error processing your request. The model might be temporarily unavailable. Please try another model or try again later.',
+        },
       ]);
     }
   };
-    
 
   return (
     <div className="flex flex-col h-[600px] bg-white rounded-lg shadow-md">
@@ -62,7 +61,7 @@ export function AIChat() {
           onChange={(e) => handleModelChange(e.target.value)}
           className="w-full p-2 border rounded"
         >
-          {MODELS.map(model => (
+          {MODELS.map((model) => (
             <option key={model.id} value={model.id}>
               {`${model.name} (${model.provider} - $${model.costPer1kTokens}/1k tokens)`}
             </option>
@@ -84,7 +83,7 @@ export function AIChat() {
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
-              {message.content}
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
         ))}
