@@ -36,3 +36,15 @@ public/*
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Cursor_rulses
+.cursorrules
+.devcontainer
+.vscode.example
+tools
+venv
+requirements.txt
+cursor_README.md
+
+
+

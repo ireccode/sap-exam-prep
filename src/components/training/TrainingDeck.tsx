@@ -11,7 +11,7 @@ export function TrainingDeck() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number | number[]>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   const { getCategoryProgress, updateProgress } = useProgressStore();
@@ -59,10 +59,37 @@ export function TrainingDeck() {
   };
   
   const handleAnswer = (questionId: string, answerId: number) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionId]: answerId
-    }));
+    setSelectedAnswers(prev => {
+      const question = questions.find(q => q.id === questionId);
+      if (!question) return prev;
+
+      const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
+      const requiredAnswers = correctAnswers.length;
+      const currentAnswers = Array.isArray(prev[questionId]) ? prev[questionId] as number[] : 
+                           prev[questionId] !== undefined ? [prev[questionId] as number] : [];
+
+      // If answer is already selected, remove it (explicit deselection)
+      if (currentAnswers.includes(answerId)) {
+        const newAnswers = currentAnswers.filter(a => a !== answerId);
+        // If no answers left, remove the entry completely
+        if (newAnswers.length === 0) {
+          const { [questionId]: _, ...rest } = prev;
+          return rest;
+        }
+        // Otherwise keep the array of remaining answers
+        return {
+          ...prev,
+          [questionId]: requiredAnswers === 1 ? newAnswers[0] : newAnswers
+        };
+      }
+
+
+      // For all answer questions, add the new answer
+      return {
+        ...prev,
+        [questionId]: [...currentAnswers, answerId]
+      };
+    });
     if (selectedCategory) {
       updateAttemptedQuestions(selectedCategory, questionId);
     }
@@ -90,7 +117,13 @@ const handleSubmit = () => {
   Object.entries(selectedAnswers).forEach(([questionId, answerId]) => {
     const question = questions.find(q => q.id === questionId);
     if (question) {
-      const isCorrect = answerId === question.correctAnswer;
+      const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
+      const selectedAnswerArray = Array.isArray(answerId) ? answerId : [answerId];
+      
+      // For multiple answers, all selected answers must be correct and match the required count
+      const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
+        selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+      
       if (isCorrect) {
         sessionCorrectCount++;
       }
@@ -101,10 +134,18 @@ const handleSubmit = () => {
 
   // Update the progress display immediately
   const progress = getCategoryProgress(selectedCategory!);
-  
-  // Progress text will update automatically through re-render since 
-  // we're using the progress from getCategoryProgress:
-  // Progress: {progress.correctCount} / {questions.length} correct
+
+  // Update progress for each question
+  questions.forEach(q => {
+    const answers = selectedAnswers[q.id];
+    if (answers === undefined) return;
+    
+    const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
+    const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+    const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
+      selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+    useProgressStore.getState().updateProgress(q.category, q.id, isCorrect);
+  });
 };
   
 

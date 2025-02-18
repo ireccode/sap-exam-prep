@@ -76,19 +76,35 @@ export function MiniExam() {
   };
 
   const handleSubmit = () => {
-    const correct = questions.filter(q => 
-      selectedAnswers[q.id] === q.correctAnswer
-    ).length;
+    const correct = questions.filter(q => {
+      const answers = selectedAnswers[q.id];
+      if (answers === undefined) return false;
+      
+      const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
+      const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+      return selectedAnswerArray.length === correctAnswers.length &&
+        selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+    }).length;
+    
     setCorrectAnswers(correct);
     setIsSubmitted(true);
 
     // Record exam history
     if (examStartTime) {
       const timeSpent = Math.floor((new Date().getTime() - examStartTime.getTime()) / 1000);
-      const questionResults = questions.reduce((acc, q) => ({
-        ...acc,
-        [q.id]: selectedAnswers[q.id] === q.correctAnswer
-      }), {});
+      const questionResults = questions.reduce((acc, q) => {
+        const answers = selectedAnswers[q.id];
+        if (answers === undefined) return { ...acc, [q.id]: false };
+        
+        const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
+        const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
+          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+        return {
+          ...acc,
+          [q.id]: isCorrect
+        };
+      }, {});
 
       addExamResult({
         id: Date.now().toString(),
@@ -101,7 +117,13 @@ export function MiniExam() {
 
       // Update progress for each question
       questions.forEach(q => {
-        const isCorrect = selectedAnswers[q.id] === q.correctAnswer;
+        const answers = selectedAnswers[q.id];
+        if (answers === undefined) return;
+        
+        const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
+        const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
+          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
         useProgressStore.getState().updateProgress(q.category, q.id, isCorrect);
       });
     }
