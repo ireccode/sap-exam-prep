@@ -1,10 +1,21 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Book, Brain, MessageSquare, Home } from 'lucide-react';
+import { useExamStore } from "@/store/useExamStore";
+import { useTrainingStore } from "@/store/useTrainingStore";
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const resetExam = useExamStore(state => state.endExam);
+  const resetTraining = useTrainingStore(state => state.resetTraining);
+
+  const handleNavigation = (path: string) => {
+    // Reset both stores when navigating
+    resetExam();
+    resetTraining();
+    navigate(path);
+  };
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -19,7 +30,7 @@ export function BottomNav() {
         {navItems.map(({ path, icon: Icon, label }) => (
           <button
             key={path}
-            onClick={() => navigate(path)}
+            onClick={() => handleNavigation(path)}
             className={`flex flex-col items-center justify-center w-full h-full space-y-1
               ${location.pathname === path ? 'text-blue-600' : 'text-gray-600'}`}
           >

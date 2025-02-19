@@ -127,6 +127,43 @@ function Home() {
         Your comprehensive preparation platform for SAP Architect certification exams.
         Choose from our training deck, practice with mini exams, or get help from our AI assistant.
       </p>
+      <svg xmlns="http://www.w3.org/2000/svg" width="400" height="100" viewBox="0 0 400 100" className="mt-8">
+        {/* Background */}
+        <rect width="400" height="100" fill="#f4f6f9" rx="10" />
+
+        {/* Book Icon */}
+        <g transform="translate(20, 20)">
+          <rect x="0" y="0" width="40" height="60" fill="#0073e6" rx="5"/>
+          <line x1="10" y1="10" x2="30" y2="10" stroke="#fff" strokeWidth="2"/>
+          <line x1="10" y1="20" x2="30" y2="20" stroke="#fff" strokeWidth="2"/>
+          <line x1="10" y1="30" x2="30" y2="30" stroke="#fff" strokeWidth="2"/>
+        </g>
+
+        {/* AI Brain Icon */}
+        <g transform="translate(80, 20)">
+          <circle cx="20" cy="30" r="20" fill="#ffcc00"/>
+          <path d="M15,15 Q20,5 25,15 Q35,25 25,35 Q20,45 15,35 Q5,25 15,15 Z"
+                fill="#fff"/>
+        </g>
+
+        {/* Text */}
+        <text x="140" y="50" fontFamily="Arial, sans-serif"
+              fontSize="20px"
+              fontWeight="bold"
+              fill="#333">
+          SAP Architect Exam Prep
+        </text>
+        
+        {/* Subtext */}
+        <text x="140" y="75"
+              fontFamily="Arial, sans-serif"
+              fontSize="14px"
+              fill="#555">
+          Learn | Practice | Succeed with AI
+        </text>
+        
+      </svg>
+      <img src="/sap_architect_logo01.jpg" alt="SAP Architect Logo" className="h-600 w-600 text-blue-600" />
     </div>
   );
 }

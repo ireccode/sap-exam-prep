@@ -1,6 +1,8 @@
 import React from 'react';
 import { Question } from '../../types/question';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { useExamStore } from '@/store/useExamStore';
 
 interface QuestionCardProps {
   question: Question;
@@ -17,6 +19,8 @@ export function QuestionCard({
   showResult,
   isSubmitted 
 }: QuestionCardProps) {
+  const navigate = useNavigate();
+  const setPreviousPath = useExamStore(state => state.setPreviousPath);
   const selectedAnswers = Array.isArray(selectedAnswer) ? selectedAnswer : selectedAnswer !== undefined ? [selectedAnswer] : [];
   const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
   const requiredAnswers = correctAnswers.length; // Use the length of correctAnswers instead of requiredAnswers field
@@ -24,6 +28,15 @@ export function QuestionCard({
   const handleAnswerClick = (index: number) => {
     if (isSubmitted) return;
     onAnswer(index);
+  };
+
+  const handleMoreDetails = () => {
+    setPreviousPath(window.location.pathname);
+    navigate('/ai-chat', { 
+      state: { 
+        query: `${question.explanation} Provide more details from SAP documentation` 
+      } 
+    });
   };
 
   return (
@@ -76,6 +89,12 @@ export function QuestionCard({
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-semibold mb-2">Explanation:</h4>
           <p>{question.explanation}</p>
+          <button
+            onClick={handleMoreDetails}
+            className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
+          >
+            More details →
+          </button>
         </div>
       )}
     </div>

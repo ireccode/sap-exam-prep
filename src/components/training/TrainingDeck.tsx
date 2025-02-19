@@ -1,18 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { questionBank } from '@/services/questionBank';
 import { CategoryCard } from './CategoryCard';
 import { CategoryHeader } from './CategoryHeader';
 import { useProgressStore } from '@/store/useProgressStore';
 import { Question } from '@/types/question';
 import { QuestionCard } from '../exam/QuestionCard';
+import { useTrainingStore } from '@/store/useTrainingStore';
 
 export function TrainingDeck() {
-  const [categories, setCategories] = useState<Array<{ name: string; count: number }>>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number | number[]>>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [categories, setCategories] = React.useState<Array<{ name: string; count: number }>>([]);
+  const { 
+    selectedCategory,
+    questions,
+    currentQuestionIndex,
+    selectedAnswers,
+    isSubmitted,
+    setSelectedCategory,
+    setQuestions,
+    setCurrentQuestionIndex,
+    setAnswer,
+    setIsSubmitted,
+    resetTraining,
+    setPreviousPath
+  } = useTrainingStore();
   
   const { getCategoryProgress, updateProgress } = useProgressStore();
 
@@ -40,120 +50,54 @@ export function TrainingDeck() {
     setQuestions(shuffledQuestions);
     setSelectedCategory(category);
     setCurrentQuestionIndex(0);
-    setSelectedAnswers({});
+    setAnswer('', 0); // Reset answers
     setIsSubmitted(false);
   };
 
-  //function to track which questions have been attempted for each category:
-  const [attemptedQuestions, setAttemptedQuestions] = useState<Record<string, Set<string>>>({});
-  
-  const updateAttemptedQuestions = (category: string, questionId: string) => {
-    setAttemptedQuestions(prev => {
-      const categoryAttempts = prev[category] || new Set();
-      categoryAttempts.add(questionId);
-      return {
-        ...prev,
-        [category]: categoryAttempts
-      };
-    });
-  };
-  
   const handleAnswer = (questionId: string, answerId: number) => {
-    setSelectedAnswers(prev => {
-      const question = questions.find(q => q.id === questionId);
-      if (!question) return prev;
-
-      const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
-      const requiredAnswers = correctAnswers.length;
-      const currentAnswers = Array.isArray(prev[questionId]) ? prev[questionId] as number[] : 
-                           prev[questionId] !== undefined ? [prev[questionId] as number] : [];
-
-      // If answer is already selected, remove it (explicit deselection)
-      if (currentAnswers.includes(answerId)) {
-        const newAnswers = currentAnswers.filter(a => a !== answerId);
-        // If no answers left, remove the entry completely
-        if (newAnswers.length === 0) {
-          const { [questionId]: _, ...rest } = prev;
-          return rest;
-        }
-        // Otherwise keep the array of remaining answers
-        return {
-          ...prev,
-          [questionId]: requiredAnswers === 1 ? newAnswers[0] : newAnswers
-        };
-      }
-
-
-      // For all answer questions, add the new answer
-      return {
-        ...prev,
-        [questionId]: [...currentAnswers, answerId]
-      };
-    });
-    if (selectedCategory) {
-      updateAttemptedQuestions(selectedCategory, questionId);
-    }
+    setAnswer(questionId, answerId);
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
-const handleSubmit = () => {
-  setIsSubmitted(true);
+  const handleSubmit = () => {
+    setIsSubmitted(true);
     
-  // Calculate correct answers for this session
-  let sessionCorrectCount = 0;
-  
-  // Update progress for answered questions
-  Object.entries(selectedAnswers).forEach(([questionId, answerId]) => {
-    const question = questions.find(q => q.id === questionId);
-    if (question) {
-      const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
-      const selectedAnswerArray = Array.isArray(answerId) ? answerId : [answerId];
-      
-      // For multiple answers, all selected answers must be correct and match the required count
-      const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
-        selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
-      
-      if (isCorrect) {
-        sessionCorrectCount++;
+    // Calculate correct answers for this session
+    let sessionCorrectCount = 0;
+    
+    // Update progress for answered questions
+    Object.entries(selectedAnswers).forEach(([questionId, answerId]) => {
+      const question = questions.find(q => q.id === questionId);
+      if (question) {
+        const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
+        const selectedAnswerArray = Array.isArray(answerId) ? answerId : [answerId];
+        
+        // For multiple answers, all selected answers must be correct and match the required count
+        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
+          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+        
+        if (isCorrect) {
+          sessionCorrectCount++;
+        }
+        // Update progress in the store
+        updateProgress(selectedCategory!, questionId, isCorrect);
       }
-      // Update progress in the store
-      updateProgress(selectedCategory!, questionId, isCorrect);
-    }
-  });
-
-  // Update the progress display immediately
-  const progress = getCategoryProgress(selectedCategory!);
-
-  // Update progress for each question
-  questions.forEach(q => {
-    const answers = selectedAnswers[q.id];
-    if (answers === undefined) return;
-    
-    const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
-    const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
-    const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
-      selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
-    useProgressStore.getState().updateProgress(q.category, q.id, isCorrect);
-  });
-};
-  
+    });
+  };
 
   const handleReturn = () => {
-    setSelectedCategory(null);
-    setQuestions([]);
-    setSelectedAnswers({});
-    setIsSubmitted(false);
+    resetTraining();
   };
 
   if (selectedCategory && questions.length > 0) {
@@ -170,8 +114,13 @@ const handleSubmit = () => {
             ← Back to Categories
           </button>
           <h2 className="text-2xl font-bold mb-2">{selectedCategory}</h2>
-          <div className="text-gray-600">
-            Progress: {progress.correctCount} / {questions.length} correct
+          <div className="mb-6 flex justify-between items-center">
+            <div className="text-lg font-semibold">
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </div>
+            <div className="text-gray-600">
+              Progress: {progress.correctCount} / {questions.length} correct
+            </div>
           </div>
         </div>
 

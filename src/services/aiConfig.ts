@@ -8,6 +8,13 @@ export interface ModelConfig {
 
 export const MODELS: ModelConfig[] = [
   {
+    id: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    name: 'Llama 3.2 11B Vision Instruct ',
+    contextWindow: 4096,
+    costPer1kTokens: 0.00,
+    provider: 'Meta'
+  },
+  {
     id: 'mistralai/mistral-7b-instruct',
     name: 'Mistral 7B',
     contextWindow: 8000,
@@ -20,19 +27,5 @@ export const MODELS: ModelConfig[] = [
     contextWindow: 4096,
     costPer1kTokens: 0.0015,
     provider: 'OpenAI'
-  },
-  {
-    id: 'anthropic/claude-2',
-    name: 'Claude 2',
-    contextWindow: 100000,
-    costPer1kTokens: 0.008,
-    provider: 'Anthropic'
-  },
-  {
-    id: 'meta-llama/llama-2-70b-chat',
-    name: 'Llama 2 70B',
-    contextWindow: 4096,
-    costPer1kTokens: 0.0007,
-    provider: 'Meta'
   }
 ];
