@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/layout/Header';
 import { BottomNav } from './components/mobile/BottomNav';
 import { AIChat } from './components/chat/AIChat';
@@ -8,6 +8,15 @@ import { useEffect } from 'react';
 import { questionBank } from '@/services/questionBank';
 import { TrainingDeck } from './components/training/TrainingDeck';
 import { useProgressStore } from '@/store/useProgressStore';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { LoginForm } from '@/components/auth/LoginForm';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { ProfileForm } from '@/components/profile/ProfileForm';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { SubscriptionPage } from '@/pages/SubscriptionPage';
+import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSuccessPage';
+import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelPage';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -50,25 +59,44 @@ class ErrorBoundary extends React.Component<
 // Wrap components that might throw errors with ErrorBoundary
 const SafeAIChat = () => (
   <ErrorBoundary>
-    <AIChat />
+    <ProtectedRoute requireSubscription>
+      <AIChat />
+    </ProtectedRoute>
   </ErrorBoundary>
 );
 
 const SafeMiniExam = () => (
   <ErrorBoundary>
-    <MiniExam />
+    <ProtectedRoute>
+      <MiniExam />
+    </ProtectedRoute>
   </ErrorBoundary>
 );
 
 const SafeTrainingDeck = () => (
   <ErrorBoundary>
-    <TrainingDeck />
+    <ProtectedRoute>
+      <TrainingDeck />
+    </ProtectedRoute>
   </ErrorBoundary>
 );
 
-export function App() {
+// Add SafeProfileForm component
+const SafeProfileForm = () => (
+  <ErrorBoundary>
+    <ProtectedRoute>
+      <ProfileForm />
+    </ProtectedRoute>
+  </ErrorBoundary>
+);
+
+function AppContent() {
+  const { isLoading, user } = useAuth();
+  console.log('AppContent render - isLoading:', isLoading, 'user:', user?.email);
+
   const initializeApp = async () => {
     try {
+      console.log('Initializing app...');
       await questionBank.initialize();
       
       const progressStore = useProgressStore.getState();
@@ -86,6 +114,7 @@ export function App() {
           strengths: []
         };
       });
+      console.log('App initialization complete');
     } catch (error) {
       console.error('Failed to initialize app:', error);
     }
@@ -95,24 +124,77 @@ export function App() {
     initializeApp();
   }, []);
 
+  if (isLoading) {
+    console.log('Showing loading spinner');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <ErrorBoundary>
+        <Header />
+      </ErrorBoundary>
+      <main className="container mx-auto px-4 py-8">
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/training" element={<SafeTrainingDeck />} />
+          <Route path="/mini-exam" element={<SafeMiniExam />} />
+          <Route path="/ai-chat" element={<SafeAIChat />} />
+          <Route path="/profile" element={<SafeProfileForm />} />
+          <Route path="/subscription" element={<SubscriptionPage />} />
+          <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+          <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <ErrorBoundary>
+        <BottomNav />
+      </ErrorBoundary>
+    </div>
+  );
+}
+
+export function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <ErrorBoundary>
-          <Header />
-        </ErrorBoundary>
-        <main className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/training" element={<SafeTrainingDeck />} />
-            <Route path="/mini-exam" element={<SafeMiniExam />} />
-            <Route path="/ai-chat" element={<SafeAIChat />} />
-          </Routes>
-        </main>
-        <ErrorBoundary>
-          <BottomNav />
-        </ErrorBoundary>
-      </div>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Header />
+            <main className="container mx-auto px-4 py-8">
+              <Routes>
+                <Route path="/login" element={<LoginForm />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Home />
+                  </ProtectedRoute>
+                } />
+                <Route path="/training" element={<SafeTrainingDeck />} />
+                <Route path="/mini-exam" element={<SafeMiniExam />} />
+                <Route path="/ai-chat" element={<SafeAIChat />} />
+                <Route path="/profile" element={<SafeProfileForm />} />
+                <Route path="/subscription" element={<SubscriptionPage />} />
+                <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+                <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+            <BottomNav />
+          </div>
+        </SubscriptionProvider>
+      </AuthProvider>
     </Router>
   );
 }
@@ -161,7 +243,6 @@ function Home() {
               fill="#555">
           Learn | Practice | Succeed with AI
         </text>
-        
       </svg>
       <img src="/sap_architect_logo01.jpg" alt="SAP Architect Logo" className="h-600 w-600 text-blue-600" />
     </div>

@@ -1,14 +1,16 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Book, Brain, MessageSquare, Home } from 'lucide-react';
+import { Book, Brain, MessageSquare, Home, LogIn, User } from 'lucide-react';
 import { useExamStore } from "@/store/useExamStore";
 import { useTrainingStore } from "@/store/useTrainingStore";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const resetExam = useExamStore(state => state.endExam);
   const resetTraining = useTrainingStore(state => state.resetTraining);
+  const { user } = useAuth();
 
   const handleNavigation = (path: string) => {
     // Reset both stores when navigating
@@ -17,12 +19,20 @@ export function BottomNav() {
     navigate(path);
   };
 
-  const navItems = [
+  const authenticatedNavItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/training', icon: Book, label: 'Training' },
     { path: '/mini-exam', icon: Brain, label: 'Exam' },
     { path: '/ai-chat', icon: MessageSquare, label: 'Chat' },
+    { path: '/profile', icon: User, label: 'Profile' },
   ];
+
+  const unauthenticatedNavItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/login', icon: LogIn, label: 'Sign In' },
+  ];
+
+  const navItems = user ? authenticatedNavItems : unauthenticatedNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
