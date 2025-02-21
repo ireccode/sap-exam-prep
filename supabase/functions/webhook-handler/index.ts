@@ -3,12 +3,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno';
 
 // Initialize Stripe
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+const stripe = new Stripe(Deno.env.get('PRIVATE_STRIPE_KEY') || '', {
   apiVersion: '2023-10-16',
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
+const webhookSecret = Deno.env.get('PRIVATE_WEBHOOK_SECRET') || '';
 
 // Initialize Supabase admin client
 const supabaseAdmin = createClient(
@@ -21,6 +21,61 @@ const supabaseAdmin = createClient(
     }
   }
 );
+
+// Helper function to verify Stripe signature
+async function verifyStripeSignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { 
+        name: 'HMAC',
+        hash: { name: 'SHA-256' }
+      },
+      false,
+      ['sign', 'verify']
+    );
+
+    // Parse Stripe signature header
+    const signatureParts = signature.split(',').reduce((acc, part) => {
+      const [key, value] = part.split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const timestamp = signatureParts.t;
+    const expectedSignature = signatureParts.v1;
+
+    if (!timestamp || !expectedSignature) {
+      console.error('Missing timestamp or signature');
+      return false;
+    }
+
+    // Prepare the signed payload
+    const signedPayload = `${timestamp}.${payload}`;
+    const actualSignature = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(signedPayload)
+    );
+
+    // Convert to hex
+    const actualHex = Array.from(new Uint8Array(actualSignature))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    console.log('Signature verification:', {
+      expected: expectedSignature,
+      actual: actualHex
+    });
+
+    return actualHex === expectedSignature;
+  } catch (error) {
+    console.error('Error verifying signature:', error);
+    return false;
+  }
+}
 
 serve(async (req) => {
   const corsHeaders = {
@@ -35,28 +90,25 @@ serve(async (req) => {
   }
 
   try {
-    // Verify webhook signature
+    // Get the signature from headers
     const signature = req.headers.get('stripe-signature');
     if (!signature) {
+      console.error('No stripe-signature header');
       throw new Error('No stripe-signature header');
     }
 
     const body = await req.text();
-    let event: Stripe.Event;
-
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err);
-      return new Response(
-        JSON.stringify({ error: 'Invalid signature' }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
+    console.log('Received webhook body length:', body.length);
+    
+    // Verify the signature
+    const isValid = await verifyStripeSignature(body, signature, webhookSecret);
+    if (!isValid) {
+      console.error('Invalid signature');
+      throw new Error('Invalid signature');
     }
 
+    // Parse the event
+    const event = JSON.parse(body);
     console.log('Processing webhook event:', event.type, event.id);
 
     switch (event.type) {
