@@ -1,186 +1,99 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-
-type Subscription = Database['public']['Tables']['customer_subscriptions']['Row'];
+import { stripeService } from '@/services/stripeService';
 
 interface SubscriptionContextType {
-  subscription: Subscription | null;
   isLoading: boolean;
-  createCheckoutSession: (priceId: string) => Promise<void>;
-  createCustomerPortalSession: () => Promise<void>;
-  cancelSubscription: () => Promise<void>;
-  reactivateSubscription: () => Promise<void>;
+  isPremium: boolean;
+  createCheckoutSession: (priceId: string) => Promise<string | null>;
+  error: string | null;
 }
 
-const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
+const SubscriptionContext = createContext<SubscriptionContextType>({
+  isLoading: true,
+  isPremium: false,
+  createCheckoutSession: async () => null,
+  error: null,
+});
 
-export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
+export const useSubscription = () => useContext(SubscriptionContext);
+
+export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Add SUPABASE_URL constant
-  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const [isPremium, setIsPremium] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
-      setSubscription(null);
       setIsLoading(false);
+      setIsPremium(false);
       return;
     }
 
-    // Fetch initial subscription data
-    fetchSubscription();
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', user.id)
+          .single();
 
-    // Subscribe to subscription changes
-    const subscriptionChannel = supabase
-      .channel('subscription_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'customer_subscriptions',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload: RealtimePostgresChangesPayload<Subscription>) => {
-          if (payload.eventType === 'DELETE') {
-            setSubscription(null);
-          } else {
-            setSubscription(payload.new as Subscription);
-          }
-        }
-      )
+        if (profileError) throw profileError;
+        setIsPremium(profile?.is_premium ?? false);
+      } catch (err) {
+        console.error('Error fetching subscription status:', err);
+        setError('Failed to fetch subscription status');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSubscriptionStatus();
+
+    // Subscribe to realtime changes
+    const subscription = supabase
+      .channel(`public:profiles:id=eq.${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.id}`,
+      }, (payload) => {
+        setIsPremium(payload.new.is_premium);
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscriptionChannel);
+      subscription.unsubscribe();
     };
   }, [user]);
 
-  const fetchSubscription = async () => {
+  const createCheckoutSession = async (priceId: string): Promise<string | null> => {
     try {
-      const { data, error } = await supabase
-        .from('customer_subscriptions')
-        .select('*')
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      setSubscription(data);
-    } catch (error) {
-      console.error('Error fetching subscription:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createCheckoutSession = async (priceId: string) => {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ price_id: priceId }),
-      });
-
-      const { session_url, error } = await response.json();
-      if (error) throw new Error(error);
-
-      window.location.href = session_url;
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      throw error;
-    }
-  };
-
-  const createCustomerPortalSession = async () => {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/create-portal-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ return_url: window.location.origin + '/subscription' }),
-      });
-
-      const { portal_url, error } = await response.json();
-      if (error) throw new Error(error);
-
-      window.location.href = portal_url;
-    } catch (error) {
-      console.error('Error creating portal session:', error);
-      throw error;
-    }
-  };
-
-  const cancelSubscription = async () => {
-    if (!subscription) return;
-
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/cancel-subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ subscription_id: subscription.subscription_id }),
-      });
-
-      const { error } = await response.json();
-      if (error) throw new Error(error);
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      throw error;
-    }
-  };
-
-  const reactivateSubscription = async () => {
-    if (!subscription) return;
-
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/reactivate-subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({ subscription_id: subscription.subscription_id }),
-      });
-
-      const { error } = await response.json();
-      if (error) throw new Error(error);
-    } catch (error) {
-      console.error('Error reactivating subscription:', error);
-      throw error;
+      const url = await stripeService.createCheckoutSession(priceId);
+      return url;
+    } catch (err) {
+      console.error('Error creating checkout session:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create checkout session');
+      return null;
     }
   };
 
   return (
-    <SubscriptionContext.Provider
-      value={{
-        subscription,
-        isLoading,
-        createCheckoutSession,
-        createCustomerPortalSession,
-        cancelSubscription,
-        reactivateSubscription,
-      }}
-    >
+    <SubscriptionContext.Provider value={{
+      isLoading,
+      isPremium,
+      createCheckoutSession,
+      error,
+    }}>
       {children}
     </SubscriptionContext.Provider>
   );
-}
-
-export function useSubscription() {
-  const context = useContext(SubscriptionContext);
-  if (context === undefined) {
-    throw new Error('useSubscription must be used within a SubscriptionProvider');
-  }
-  return context;
-} 
+}; 

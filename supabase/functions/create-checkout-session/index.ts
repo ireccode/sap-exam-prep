@@ -1,110 +1,160 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno';
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-11-20.acacia',
   httpClient: Stripe.createFetchHttpClient(),
-});
+})
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const supabaseClient = createClient(
+  Deno.env.get('SUPABASE_URL') || '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+)
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') || '',
-      Deno.env.get('SUPABASE_ANON_KEY') || '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
-
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      console.error('No authorization header provided')
+      throw new Error('No authorization header')
     }
+
+    // Get the JWT token
+    const token = authHeader.replace('Bearer ', '')
+
+    // Get the user from Supabase
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    if (userError) {
+      console.error('Error getting user:', userError)
+      throw new Error('Invalid user token')
+    }
+    if (!user) {
+      console.error('No user found for token')
+      throw new Error('Invalid user token')
+    }
+
+    console.log('User authenticated:', { userId: user.id, email: user.email })
 
     // Get the request body
-    const { price_id } = await req.json();
-
-    if (!price_id) {
-      throw new Error('Price ID is required');
+    const { priceId, userId } = await req.json()
+    if (!priceId) {
+      console.error('No price ID provided in request body')
+      throw new Error('Price ID is required')
     }
 
-    // Get or create Stripe customer
-    const { data: customers, error: customerError } = await supabaseClient
+    console.log('Request body:', { priceId, userId })
+
+    // Verify that the userId matches the authenticated user
+    if (userId !== user.id) {
+      console.error('User ID mismatch:', { providedId: userId, authenticatedId: user.id })
+      throw new Error('User ID mismatch')
+    }
+
+    // Get or create customer
+    let customerId: string
+    const { data: existingCustomer, error: customerError } = await supabaseClient
       .from('customers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
-      .single();
+      .single()
 
-    let stripeCustomerId = customers?.stripe_customer_id;
-
-    if (!stripeCustomerId) {
-      // Create new Stripe customer
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      });
-
-      stripeCustomerId = customer.id;
-
-      // Save customer in database
-      await supabaseClient.from('customers').insert({
-        user_id: user.id,
-        stripe_customer_id: customer.id,
-      });
+    if (customerError) {
+      console.error('Error checking for existing customer:', customerError)
     }
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
-      line_items: [
-        {
-          price: price_id,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/subscription/success`,
-      cancel_url: `${req.headers.get('origin')}/subscription/cancel`,
-      subscription_data: {
+    if (existingCustomer?.stripe_customer_id) {
+      customerId = existingCustomer.stripe_customer_id
+      console.log('Found existing customer:', { customerId })
+    } else {
+      // Create a new customer in Stripe
+      try {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: {
+            supabase_user_id: user.id
+          }
+        })
+        customerId = customer.id
+        console.log('Created new customer:', { customerId })
+
+        // Save the customer in Supabase
+        const { error: insertError } = await supabaseClient.from('customers').insert({
+          user_id: user.id,
+          stripe_customer_id: customerId
+        })
+
+        if (insertError) {
+          console.error('Error saving customer to Supabase:', insertError)
+          // Continue anyway since we have the Stripe customer
+        }
+      } catch (stripeError) {
+        console.error('Error creating Stripe customer:', stripeError)
+        throw new Error('Failed to create customer')
+      }
+    }
+
+    // Create the checkout session
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${Deno.env.get('CLIENT_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${Deno.env.get('CLIENT_URL')}/subscription/cancel`,
         metadata: {
           supabase_user_id: user.id,
         },
-      },
-    });
+      })
 
-    return new Response(
-      JSON.stringify({ session_url: session.url }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+      console.log('Created checkout session:', { sessionId: session.id, url: session.url })
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      })
+    } catch (stripeError) {
+      console.error('Error creating checkout session:', stripeError)
+      throw new Error('Failed to create checkout session')
+    }
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
-    );
+    console.error('Error in create-checkout-session:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
   }
-}); 
+}) 

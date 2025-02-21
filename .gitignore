@@ -46,5 +46,7 @@ venv
 requirements.txt
 cursor_README.md
 
-
+# Supabase
+supabase/config.toml
+supabase/.gitignore
 
