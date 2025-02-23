@@ -28,6 +28,7 @@ interface ProgressState {
   addExamResult: (result: ExamHistory) => void;
   getWeakAreas: () => string[];
   getStrengths: () => string[];
+  reset: () => void;
 }
 
 interface ProgressStore {
@@ -117,7 +118,12 @@ export const useProgressStore = create<ProgressState>()(
             data.completedCount >= 5
           )
           .map(([category]) => category);
-      }
+      },
+
+      reset: () => set(() => ({
+        categoryProgress: {},
+        examHistory: []
+      })),
     }),
     {
       name: 'exam-progress'

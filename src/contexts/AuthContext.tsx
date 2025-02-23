@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
+import { useProgressStore } from '@/store/useProgressStore';
+import { useTrainingStore } from '@/store/useTrainingStore';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -168,25 +170,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signIn(email: string, password: string) {
-    console.log('Attempting sign in for:', email);
-    setState(s => ({ ...s, isLoading: true }));
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
       if (error) {
-        console.error('Sign in error:', error);
-        setState(s => ({ ...s, isLoading: false }));
         return { error };
       }
 
-      // Don't wait for profile fetch to complete
+      // Reset stores when user signs in
+      useProgressStore.getState().reset();
+      useTrainingStore.getState().resetTraining();
+
+      // Fetch user profile
       if (data.user) {
-        fetchUserData(data.user.id).catch(console.error);
+        await fetchUserData(data.user.id);
       }
 
       return { error: null };
     } catch (error) {
-      console.error('Sign in error:', error);
-      setState(s => ({ ...s, isLoading: false }));
+      console.error('Error signing in:', error);
       return { error: error as AuthError };
     }
   }
@@ -228,6 +233,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState(s => ({ ...s, isLoading: true }));
     try {
       await supabase.auth.signOut();
+      // Reset stores on sign out
+      useProgressStore.getState().reset();
+      useTrainingStore.getState().resetTraining();
       setState({
         user: null,
         profile: null,

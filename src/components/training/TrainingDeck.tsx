@@ -8,6 +8,40 @@ import { QuestionCard } from '../exam/QuestionCard';
 import { useTrainingStore } from '@/store/useTrainingStore';
 import { useAuth } from '@/contexts/AuthContext';
 
+const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number | number[], requiredAnswers: number = 1) => {
+  // Convert single number to array if needed
+  const correctAnswerArray = Array.isArray(correctAnswers) ? correctAnswers : [correctAnswers];
+
+  console.log('TrainingDeck - Answer Check:', {
+    selectedAnswers,
+    correctAnswerArray,
+    requiredAnswers,
+    selectedLength: selectedAnswers.length,
+    correctLength: correctAnswerArray.length,
+  });
+
+  // For single answer questions
+  if (requiredAnswers === 1) {
+    return selectedAnswers.length === 1 && correctAnswerArray.includes(selectedAnswers[0]);
+  }
+
+  // For multiple answer questions:
+  // 1. Check if we have the right number of answers
+  // 2. Check if all selected answers are in correctAnswers (order independent)
+  // 3. Check if all correct answers are selected (order independent)
+  const hasCorrectCount = selectedAnswers.length === correctAnswerArray.length;
+  const allSelectedAreCorrect = selectedAnswers.every(answer => correctAnswerArray.includes(answer));
+  const allCorrectAreSelected = correctAnswerArray.every(answer => selectedAnswers.includes(answer));
+
+  console.log('Multiple Answer Check:', {
+    hasCorrectCount,
+    allSelectedAreCorrect,
+    allCorrectAreSelected
+  });
+
+  return hasCorrectCount && allSelectedAreCorrect && allCorrectAreSelected;
+};
+
 export function TrainingDeck() {
   const [categories, setCategories] = React.useState<Array<{ name: string; count: number; hasPremium: boolean }>>([]);
   const { 
@@ -32,8 +66,8 @@ export function TrainingDeck() {
     const initializeCategories = async () => {
       await questionBank.initialize();
       
-      // Get all categories including premium ones
-      const allCategories = questionBank.getCategories({ isPremium: true });
+      // Get categories based on user's subscription status
+      const allCategories = questionBank.getCategories({ isPremium });
       
       const categoriesWithInfo = allCategories.map(category => {
         const basicCount = questionBank.getCategoryCount(category, { isPremium: false });
@@ -53,9 +87,49 @@ export function TrainingDeck() {
   const handleStartTraining = (category: string) => {
     // Get all questions for the category based on subscription status
     const categoryQuestions = questionBank.getQuestionsByCategory(category, { isPremium });
-    const shuffledQuestions = [...categoryQuestions]
+    
+    // Process questions to ensure correct answer arrays and required answers
+    const processedQuestions = categoryQuestions.map(question => {
+      // Check if question has multiple answers (correctAnswers property)
+      const hasMultipleAnswers = 'correctAnswers' in question && 
+        Array.isArray((question as any).correctAnswers);
+      
+      if (hasMultipleAnswers) {
+        const multiAnswerQuestion = question as Question & { correctAnswers: number[] };
+        console.log('Processing multi-answer question:', {
+          id: multiAnswerQuestion.id,
+          correctAnswers: multiAnswerQuestion.correctAnswers,
+          requiredAnswers: multiAnswerQuestion.correctAnswers.length
+        });
+        return {
+          ...multiAnswerQuestion,
+          correctAnswer: multiAnswerQuestion.correctAnswers,
+          requiredAnswers: multiAnswerQuestion.correctAnswers.length
+        };
+      }
+      
+      // Single answer question (correctAnswer property)
+      console.log('Processing single-answer question:', {
+        id: question.id,
+        correctAnswer: question.correctAnswer,
+        requiredAnswers: 1
+      });
+      return {
+        ...question,
+        correctAnswer: [question.correctAnswer] as number[],
+        requiredAnswers: 1
+      };
+    });
+
+    console.log('TrainingDeck - Loading Questions:', processedQuestions.map(q => ({
+      id: q.id,
+      correctAnswer: q.correctAnswer,
+      requiredAnswers: q.requiredAnswers
+    })));
+
+    const shuffledQuestions = [...processedQuestions]
       .sort(() => Math.random() - 0.5)
-      .slice(0, Math.min(10, categoryQuestions.length));
+      .slice(0, Math.min(10, processedQuestions.length));
     
     // Initialize the training session
     setQuestions(shuffledQuestions);
@@ -66,6 +140,12 @@ export function TrainingDeck() {
   };
 
   const handleAnswer = (questionId: string, answerId: number) => {
+    console.log('TrainingDeck - Handle Answer:', {
+      questionId,
+      answerId,
+      currentAnswers: selectedAnswers[questionId],
+      allAnswers: selectedAnswers
+    });
     setAnswer(questionId, answerId);
   };
 
@@ -83,28 +163,62 @@ export function TrainingDeck() {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
+    console.log('TrainingDeck - Submit Start:', {
+      selectedAnswers,
+      questions: questions.map(q => ({
+        id: q.id,
+        correctAnswer: q.correctAnswer,
+        requiredAnswers: q.requiredAnswers
+      }))
+    });
     
     // Calculate correct answers for this session
     let sessionCorrectCount = 0;
     
     // Update progress for answered questions
-    Object.entries(selectedAnswers).forEach(([questionId, answerId]) => {
-      const question = questions.find(q => q.id === questionId);
-      if (question) {
-        const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
-        const selectedAnswerArray = Array.isArray(answerId) ? answerId : [answerId];
-        
-        // For multiple answers, all selected answers must be correct and match the required count
-        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
-          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
-        
-        if (isCorrect) {
-          sessionCorrectCount++;
-        }
-        // Update progress in the store
-        updateProgress(selectedCategory!, questionId, isCorrect);
+    questions.forEach(question => {
+      const answer = selectedAnswers[question.id];
+      const selectedAnswerArray = answer
+        ? (Array.isArray(answer) ? answer : [answer]) as number[]
+        : [];
+      const correctAnswers = Array.isArray(question.correctAnswer) 
+        ? question.correctAnswer 
+        : [question.correctAnswer];
+      const requiredAnswers = question.requiredAnswers || 1;
+      
+      console.log('TrainingDeck - Processing Question:', {
+        questionId: question.id,
+        selectedAnswerArray,
+        correctAnswers,
+        requiredAnswers,
+        answer,
+        isArray: Array.isArray(answer)
+      });
+      
+      // Check if all answers are correct using the helper function
+      const isCorrect = areAllAnswersCorrect(selectedAnswerArray, correctAnswers, requiredAnswers);
+      
+      console.log('TrainingDeck - Question Result:', {
+        questionId: question.id,
+        isCorrect,
+        sessionCorrectCount
+      });
+      
+      if (isCorrect) {
+        sessionCorrectCount++;
       }
+      
+      // Update progress in the store
+      updateProgress(selectedCategory!, question.id, isCorrect);
     });
+
+    console.log('TrainingDeck - Submit Complete:', {
+      sessionCorrectCount,
+      totalQuestions: questions.length
+    });
+
+    // Force a re-render to update the progress display
+    setCategories(prevCategories => [...prevCategories]);
   };
 
   const handleReturn = () => {

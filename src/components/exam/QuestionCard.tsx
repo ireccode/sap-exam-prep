@@ -13,6 +13,20 @@ interface QuestionCardProps {
   isSubmitted?: boolean;
 }
 
+const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number | number[]) => {
+  // Convert single number to array if needed
+  const correctAnswerArray = Array.isArray(correctAnswers) ? correctAnswers : [correctAnswers];
+
+  // 1. Check if we have the right number of answers
+  // 2. Check if all selected answers are in correctAnswers (order independent)
+  // 3. Check if all correct answers are selected (order independent)
+  const hasCorrectCount = selectedAnswers.length === correctAnswerArray.length;
+  const allSelectedAreCorrect = selectedAnswers.every(answer => correctAnswerArray.includes(answer));
+  const allCorrectAreSelected = correctAnswerArray.every(answer => selectedAnswers.includes(answer));
+
+  return hasCorrectCount && allSelectedAreCorrect && allCorrectAreSelected;
+};
+
 export function QuestionCard({ 
   question, 
   selectedAnswer, 
@@ -22,9 +36,17 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const navigate = useNavigate();
   const setPreviousPath = useExamStore(state => state.setPreviousPath);
+  
+  // Ensure selectedAnswers is always an array
   const selectedAnswers = Array.isArray(selectedAnswer) ? selectedAnswer : selectedAnswer !== undefined ? [selectedAnswer] : [];
-  const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
-  const requiredAnswers = question.requiredAnswers || 1;
+  
+  // Ensure correctAnswers is always an array and properly initialized
+  const correctAnswers = Array.isArray(question.correctAnswer) ? 
+    question.correctAnswer : 
+    question.correctAnswer !== undefined ? [question.correctAnswer] : [];
+  
+  // Set requiredAnswers based on correctAnswers length if not specified
+  const requiredAnswers = question.requiredAnswers || correctAnswers.length;
 
   const handleAnswerClick = (index: number) => {
     if (isSubmitted) return;
@@ -60,6 +82,7 @@ export function QuestionCard({
       <div className="space-y-3">
         {question.options.map((option, index) => {
           const isSelected = selectedAnswers.includes(index);
+          const isCorrect = correctAnswers.includes(index);
 
           return (
             <button
@@ -68,25 +91,22 @@ export function QuestionCard({
               disabled={isSubmitted}
               className={cn(
                 "w-full text-left p-4 rounded-lg border transition-colors",
-                isSelected
-                  ? isSubmitted
-                    ? correctAnswers.includes(index)
-                      ? "bg-green-100 border-green-500"
-                      : "bg-red-100 border-red-500"
-                    : "bg-blue-100 border-blue-500 hover:bg-blue-200"
-                  : isSubmitted && correctAnswers.includes(index)
-                    ? "bg-green-100 border-green-500"
+                isSubmitted
+                  ? isCorrect
+                    ? "bg-green-100 border-green-500" // Always show correct answers in green when submitted
+                    : isSelected
+                      ? "bg-red-100 border-red-500" // Show incorrect selections in red
+                      : "border-gray-200" // Neutral for unselected options
+                  : isSelected
+                    ? "bg-blue-100 border-blue-500 hover:bg-blue-200"
                     : "border-gray-200 hover:bg-gray-50",
-                isSubmitted && "cursor-not-allowed",
-                isSelected && !isSubmitted && "hover:bg-red-100 hover:border-red-500" // Hover style for deselection
+                isSubmitted && "cursor-not-allowed"
               )}
             >
               <div className="flex justify-between items-center">
                 <span>{option}</span>
                 {isSelected && !isSubmitted && (
-                  <span className="text-sm text-gray-500">
-                    Click to deselect
-                  </span>
+                  <span className="text-sm text-gray-500">Click to deselect</span>
                 )}
               </div>
             </button>

@@ -24,30 +24,31 @@ class QuestionBankService {
     try {
       // Load basic questions
       const basicResponse = await fetch('/basic_btp_query_bank.json');
+      if (!basicResponse.ok) {
+        throw new Error('Failed to load basic questions');
+      }
       const basicData = await basicResponse.json();
-      this.basicQuestions = basicData.questions.map((q: any) => ({
+      this.basicQuestions = (basicData.questions || []).map((q: any) => ({
         ...q,
         isPremium: false
       }));
 
       // Load and decrypt premium questions
+      const premiumResponse = await fetch('/premium_btp_query_bank.encrypted');
+      if (!premiumResponse.ok) {
+        throw new Error('Failed to load premium questions');
+      }
+      const encryptedData = await premiumResponse.text();
+      
       try {
-        const premiumResponse = await fetch('/premium_btp_query_bank.encrypted');
-        const encryptedData = await premiumResponse.text();
-        
-        try {
-          const decryptedQuestions = await this.encryptionService.decryptQuestions(encryptedData);
-          this.premiumQuestions = decryptedQuestions.map(q => ({
-            ...q,
-            isPremium: true
-          }));
-          console.log('Successfully loaded and decrypted premium questions');
-        } catch (decryptError) {
-          console.error('Failed to decrypt premium questions:', decryptError);
-          this.premiumQuestions = [];
-        }
-      } catch (loadError) {
-        console.error('Failed to load encrypted premium questions:', loadError);
+        const decryptedQuestions = await this.encryptionService.decryptQuestions(encryptedData);
+        this.premiumQuestions = decryptedQuestions.map(q => ({
+          ...q,
+          isPremium: true
+        }));
+        console.log('Successfully loaded and decrypted premium questions');
+      } catch (decryptError) {
+        console.error('Failed to decrypt premium questions:', decryptError);
         this.premiumQuestions = [];
       }
 
@@ -56,12 +57,20 @@ class QuestionBankService {
       console.error('Failed to load questions:', error);
       this.basicQuestions = [];
       this.premiumQuestions = [];
+      throw error;
     }
   }
 
   getAllQuestions(filters: QuestionFilters = {}): Question[] {
-    // Filter questions based on premium status
-    let questions = this.basicQuestions;
+    if (!this.initialized) {
+      console.warn('QuestionBank not initialized. Call initialize() first.');
+      return [];
+    }
+
+    // Start with basic questions
+    let questions = [...this.basicQuestions];
+    
+    // Add premium questions if requested
     if (filters.isPremium) {
       questions = [...questions, ...this.premiumQuestions];
     }

@@ -18,6 +18,8 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
   error: null,
 });
 
+export { SubscriptionContext };
+
 export const useSubscription = () => useContext(SubscriptionContext);
 
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

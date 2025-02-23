@@ -3,12 +3,13 @@ export interface Question {
   category: string;
   question: string;
   options: string[];
-  correctAnswer: number | number[];  // Can be single number or array of numbers for multiple correct answers
-  requiredAnswers?: number;  // Number of answers that should be selected, defaults to 1 if not specified
+  correctAnswer: number | number[];
+  correctAnswers?: number[]; // For multiple answer questions
   explanation: string;
   difficulty: number;
   isPremium?: boolean;
   tags?: string[];
+  requiredAnswers?: number;
 }
 
 export interface UserProgress {

@@ -31,8 +31,8 @@ export function CategoryCard({
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex justify-between items-start">
         <h3 className="font-semibold text-lg">{title}</h3>
-        {hasPremium && (
-          <div className="flex items-center text-yellow-600" title={isPremium ? "Premium Content Available" : "Premium Content (Requires Subscription)"}>
+        {hasPremium && isPremium && (
+          <div className="flex items-center text-yellow-600" title="Premium Content Available">
             <Crown className="h-5 w-5" />
           </div>
         )}
