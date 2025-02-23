@@ -11,6 +11,7 @@ class QuestionBankService {
   private basicQuestions: Question[] = [];
   private premiumQuestions: Question[] = [];
   private initialized = false;
+  private encryptionKey: string | null = null;
 
   async initialize() {
     if (this.initialized) return;
@@ -24,13 +25,23 @@ class QuestionBankService {
         isPremium: false
       }));
 
-      // Load premium questions
-      const premiumResponse = await fetch('/premium_btp_query_bank.json');
-      const premiumData = await premiumResponse.json();
-      this.premiumQuestions = premiumData.questions.map((q: any) => ({
-        ...q,
-        isPremium: true
-      }));
+      // Load premium questions if encryption key is available
+      const encryptionKey = import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY;
+      if (encryptionKey) {
+        this.encryptionKey = encryptionKey;
+        try {
+          const premiumResponse = await fetch('/premium_btp_query_bank.json');
+          const premiumData = await premiumResponse.json();
+          // TODO: Implement decryption when encryption is added
+          this.premiumQuestions = premiumData.questions.map((q: any) => ({
+            ...q,
+            isPremium: true
+          }));
+        } catch (error) {
+          console.error('Failed to load premium questions:', error);
+          this.premiumQuestions = [];
+        }
+      }
 
       this.initialized = true;
     } catch (error) {
@@ -40,33 +51,44 @@ class QuestionBankService {
     }
   }
 
-  getAllQuestions(includesPremium: boolean = false): Question[] {
-    return includesPremium 
-      ? [...this.basicQuestions, ...this.premiumQuestions]
-      : this.basicQuestions;
+  getAllQuestions(filters: QuestionFilters = {}): Question[] {
+    // Filter questions based on premium status
+    let questions = this.basicQuestions;
+    if (filters.isPremium) {
+      questions = [...questions, ...this.premiumQuestions];
+    }
+
+    // Apply category filters if specified
+    if (filters.categories?.length) {
+      questions = questions.filter(q => filters.categories!.includes(q.category));
+    }
+
+    // Apply difficulty filter if specified
+    if (filters.difficulty !== undefined) {
+      questions = questions.filter(q => q.difficulty === filters.difficulty);
+    }
+
+    return questions;
   }
 
   getQuestionsByCategory(category: string, filters: QuestionFilters = {}): Question[] {
-    const allQuestions = this.getAllQuestions(filters.isPremium);
-    return allQuestions.filter(q => 
-      q.category === category &&
-      (!filters.difficulty || q.difficulty === filters.difficulty)
-    );
+    const allQuestions = this.getAllQuestions(filters);
+    return allQuestions.filter(q => q.category === category);
   }
 
-  getCategories(includesPremium: boolean = false): string[] {
-    const allQuestions = this.getAllQuestions(includesPremium);
+  getCategories(filters: QuestionFilters = {}): string[] {
+    const allQuestions = this.getAllQuestions(filters);
     return Array.from(new Set(allQuestions.map(q => q.category))).sort();
   }
 
-  getCategoryCount(category: string, includesPremium: boolean = false): number {
-    return this.getQuestionsByCategory(category, { isPremium: includesPremium }).length;
+  getCategoryCount(category: string, filters: QuestionFilters = {}): number {
+    return this.getQuestionsByCategory(category, filters).length;
   }
 
   getAdaptiveQuestions(count: number, filters: QuestionFilters = {}): Question[] {
     const progressStore = useProgressStore.getState();
     const weakAreas = progressStore.getWeakAreas();
-    const allQuestions = this.getAllQuestions(filters.isPremium);
+    const allQuestions = this.getAllQuestions(filters);
     
     // Prioritize questions from weak areas
     const weakAreaQuestions = allQuestions.filter(q => 

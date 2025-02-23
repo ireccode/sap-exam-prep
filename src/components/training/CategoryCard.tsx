@@ -1,6 +1,7 @@
 import React from 'react';
-import { Book, ArrowRight } from 'lucide-react';
+import { Book, ArrowRight, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CategoryCardProps {
   title: string;
@@ -8,6 +9,7 @@ interface CategoryCardProps {
   completedCount: number;
   correctCount: number;
   isStarted: boolean;
+  hasPremium: boolean;
   onClick: () => void;
 }
 
@@ -17,17 +19,23 @@ export function CategoryCard({
   completedCount,
   correctCount,
   isStarted,
+  hasPremium,
   onClick 
 }: CategoryCardProps) {
+  const { isPremium } = useAuth();
   const progress = (completedCount / questionCount) * 100;
   const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
   const buttonText = isStarted ? 'Continue Training' : 'Start Training';
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex items-center mb-4">
-        <Book className="w-5 h-5 text-blue-600 mr-2" />
+      <div className="flex justify-between items-start">
         <h3 className="font-semibold text-lg">{title}</h3>
+        {hasPremium && (
+          <div className="flex items-center text-yellow-600" title={isPremium ? "Premium Content Available" : "Premium Content (Requires Subscription)"}>
+            <Crown className="h-5 w-5" />
+          </div>
+        )}
       </div>
 
       <div className="space-y-4 mb-4">

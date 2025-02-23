@@ -3,6 +3,7 @@ import { Question } from '../../types/question';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '@/store/useExamStore';
+import { Crown } from 'lucide-react';
 
 interface QuestionCardProps {
   question: Question;
@@ -23,7 +24,7 @@ export function QuestionCard({
   const setPreviousPath = useExamStore(state => state.setPreviousPath);
   const selectedAnswers = Array.isArray(selectedAnswer) ? selectedAnswer : selectedAnswer !== undefined ? [selectedAnswer] : [];
   const correctAnswers = Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer];
-  const requiredAnswers = correctAnswers.length; // Use the length of correctAnswers instead of requiredAnswers field
+  const requiredAnswers = question.requiredAnswers || 1;
 
   const handleAnswerClick = (index: number) => {
     if (isSubmitted) return;
@@ -41,14 +42,21 @@ export function QuestionCard({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-semibold mb-4">
-        {question.question}
-        {requiredAnswers > 1 && (
-          <span className="text-sm font-normal text-gray-600 ml-2">
-            (Select {requiredAnswers} answers - Selected {selectedAnswers.length})
-          </span>
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-lg font-semibold">
+          {question.question}
+          {requiredAnswers > 1 && (
+            <span className="text-sm font-normal text-gray-600 ml-2">
+              (Select {requiredAnswers} answers - Selected {selectedAnswers.length})
+            </span>
+          )}
+        </h3>
+        {question.isPremium && (
+          <div className="flex items-center text-yellow-600" title="Premium Question">
+            <Crown className="h-5 w-5" />
+          </div>
         )}
-      </h3>
+      </div>
       <div className="space-y-3">
         {question.options.map((option, index) => {
           const isSelected = selectedAnswers.includes(index);

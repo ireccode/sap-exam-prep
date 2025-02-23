@@ -6,9 +6,10 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { Question } from '@/types/question';
 import { QuestionCard } from '../exam/QuestionCard';
 import { useTrainingStore } from '@/store/useTrainingStore';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function TrainingDeck() {
-  const [categories, setCategories] = React.useState<Array<{ name: string; count: number }>>([]);
+  const [categories, setCategories] = React.useState<Array<{ name: string; count: number; hasPremium: boolean }>>([]);
   const { 
     selectedCategory,
     questions,
@@ -25,23 +26,33 @@ export function TrainingDeck() {
   } = useTrainingStore();
   
   const { getCategoryProgress, updateProgress } = useProgressStore();
+  const { isPremium } = useAuth();
 
   useEffect(() => {
     const initializeCategories = async () => {
       await questionBank.initialize();
-      const allCategories = questionBank.getCategories();
-      const categoriesWithCount = allCategories.map(category => ({
-        name: category,
-        count: questionBank.getCategoryCount(category)
-      }));
-      setCategories(categoriesWithCount);
+      
+      // Get all categories including premium ones
+      const allCategories = questionBank.getCategories({ isPremium: true });
+      
+      const categoriesWithInfo = allCategories.map(category => {
+        const basicCount = questionBank.getCategoryCount(category, { isPremium: false });
+        const totalCount = questionBank.getCategoryCount(category, { isPremium: true });
+        return {
+          name: category,
+          count: isPremium ? totalCount : basicCount,
+          hasPremium: totalCount > basicCount
+        };
+      });
+      
+      setCategories(categoriesWithInfo);
     };
     initializeCategories();
-  }, []);
+  }, [isPremium]);
 
   const handleStartTraining = (category: string) => {
-    // Get all questions for the category
-    const categoryQuestions = questionBank.getQuestionsByCategory(category);
+    // Get all questions for the category based on subscription status
+    const categoryQuestions = questionBank.getQuestionsByCategory(category, { isPremium });
     const shuffledQuestions = [...categoryQuestions]
       .sort(() => Math.random() - 0.5)
       .slice(0, Math.min(10, categoryQuestions.length));
@@ -166,7 +177,7 @@ export function TrainingDeck() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <CategoryHeader categories={categories} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map(({ name, count }) => {
+        {categories.map(({ name, count, hasPremium }) => {
           const progress = getCategoryProgress(name);
           return (
             <CategoryCard
@@ -176,6 +187,7 @@ export function TrainingDeck() {
               completedCount={progress.completedCount}
               correctCount={progress.correctCount}
               isStarted={progress.completedCount > 0}
+              hasPremium={hasPremium}
               onClick={() => handleStartTraining(name)}
             />
           );

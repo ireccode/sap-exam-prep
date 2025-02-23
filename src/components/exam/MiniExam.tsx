@@ -5,6 +5,7 @@ import { QuestionCard } from './QuestionCard';
 import { ExamSetup } from './ExamSetup';
 import { Clock, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useProgressStore } from '@/store/useProgressStore';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function MiniExam() {
   const {
@@ -27,6 +28,7 @@ export function MiniExam() {
   } = useExamStore();
 
   const { addExamResult } = useProgressStore();
+  const { isPremium } = useAuth();
   const [examStartTime, setExamStartTime] = useState<Date>();
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function MiniExam() {
   }, []);
 
   const handleStartExam = async (config: { duration: number; questionCount: number }) => {
-    const examQuestions = questionBank.getAdaptiveQuestions(config.questionCount);
+    const examQuestions = questionBank.getAdaptiveQuestions(config.questionCount, { isPremium });
     setQuestions(examQuestions);
     setCurrentQuestion(examQuestions[0]);
     setTimeRemaining(config.duration * 60);
