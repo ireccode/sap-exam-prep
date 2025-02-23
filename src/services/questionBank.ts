@@ -1,5 +1,6 @@
 import { Question } from '../types/question';
 import { useProgressStore } from '@/store/useProgressStore';
+import { EncryptionService } from './encryptionService';
 
 export interface QuestionFilters {
   categories?: string[];
@@ -11,7 +12,11 @@ class QuestionBankService {
   private basicQuestions: Question[] = [];
   private premiumQuestions: Question[] = [];
   private initialized = false;
-  private encryptionKey: string | null = null;
+  private encryptionService: EncryptionService;
+
+  constructor() {
+    this.encryptionService = EncryptionService.getInstance();
+  }
 
   async initialize() {
     if (this.initialized) return;
@@ -25,22 +30,25 @@ class QuestionBankService {
         isPremium: false
       }));
 
-      // Load premium questions if encryption key is available
-      const encryptionKey = import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY;
-      if (encryptionKey) {
-        this.encryptionKey = encryptionKey;
+      // Load and decrypt premium questions
+      try {
+        const premiumResponse = await fetch('/premium_btp_query_bank.encrypted');
+        const encryptedData = await premiumResponse.text();
+        
         try {
-          const premiumResponse = await fetch('/premium_btp_query_bank.json');
-          const premiumData = await premiumResponse.json();
-          // TODO: Implement decryption when encryption is added
-          this.premiumQuestions = premiumData.questions.map((q: any) => ({
+          const decryptedQuestions = await this.encryptionService.decryptQuestions(encryptedData);
+          this.premiumQuestions = decryptedQuestions.map(q => ({
             ...q,
             isPremium: true
           }));
-        } catch (error) {
-          console.error('Failed to load premium questions:', error);
+          console.log('Successfully loaded and decrypted premium questions');
+        } catch (decryptError) {
+          console.error('Failed to decrypt premium questions:', decryptError);
           this.premiumQuestions = [];
         }
+      } catch (loadError) {
+        console.error('Failed to load encrypted premium questions:', loadError);
+        this.premiumQuestions = [];
       }
 
       this.initialized = true;
