@@ -13,7 +13,7 @@ const supabaseClient = createClient(
 )
 
 serve(async (req) => {
-  console.log('Received request:', {
+  console.log('Received portal session request:', {
     method: req.method,
     headers: Object.fromEntries(req.headers.entries()),
   });
@@ -65,82 +65,30 @@ serve(async (req) => {
 
     console.log('User authenticated:', { userId: user.id, email: user.email });
 
-    // Get the request body
-    const { priceId, userId } = await req.json();
-    console.log('Request body:', { priceId, userId });
-
-    // Verify that the userId matches the authenticated user
-    if (userId !== user.id) {
-      console.error('User ID mismatch:', { providedId: userId, authenticatedId: user.id });
-      throw new Error('User ID mismatch');
-    }
-
-    // Get or create customer
-    let customerId: string;
-    const { data: existingCustomer, error: customerError } = await supabaseClient
+    // Get the customer ID from Supabase
+    const { data: customer, error: customerError } = await supabaseClient
       .from('customers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .single();
 
-    if (customerError) {
-      console.error('Error checking for existing customer:', customerError);
+    if (customerError || !customer?.stripe_customer_id) {
+      console.error('Error getting customer:', customerError);
+      throw new Error('Customer not found');
     }
 
-    if (existingCustomer?.stripe_customer_id) {
-      customerId = existingCustomer.stripe_customer_id;
-      console.log('Found existing customer:', { customerId });
-    } else {
-      // Create a new customer in Stripe
-      try {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          metadata: {
-            supabase_user_id: user.id
-          }
-        });
-        customerId = customer.id;
-        console.log('Created new customer:', { customerId });
+    console.log('Found customer:', { stripeCustomerId: customer.stripe_customer_id });
 
-        // Save the customer in Supabase
-        const { error: insertError } = await supabaseClient.from('customers').insert({
-          user_id: user.id,
-          stripe_customer_id: customerId
-        });
-
-        if (insertError) {
-          console.error('Error saving customer to Supabase:', insertError);
-          // Continue anyway since we have the Stripe customer
-        }
-      } catch (stripeError) {
-        console.error('Error creating Stripe customer:', stripeError);
-        throw new Error('Failed to create customer');
-      }
-    }
-
-    // Create the checkout session
+    // Create the portal session
     try {
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        mode: 'subscription',
-        success_url: `${Deno.env.get('CLIENT_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${Deno.env.get('CLIENT_URL')}/subscription/cancel`,
-        metadata: {
-          supabase_user_id: user.id,
-        },
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customer.stripe_customer_id,
+        return_url: `${Deno.env.get('CLIENT_URL')}/subscription`,
       });
 
-      console.log('Created checkout session:', {
+      console.log('Created portal session:', {
         sessionId: session.id,
         url: session.url,
-        successUrl: `${Deno.env.get('CLIENT_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${Deno.env.get('CLIENT_URL')}/subscription/cancel`,
       });
 
       return new Response(JSON.stringify({ url: session.url }), {
@@ -150,11 +98,11 @@ serve(async (req) => {
         },
       });
     } catch (stripeError) {
-      console.error('Error creating checkout session:', stripeError);
-      throw new Error('Failed to create checkout session');
+      console.error('Error creating portal session:', stripeError);
+      throw new Error('Failed to create portal session');
     }
   } catch (error) {
-    console.error('Error in create-checkout-session:', error);
+    console.error('Error in create-portal-session:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: {

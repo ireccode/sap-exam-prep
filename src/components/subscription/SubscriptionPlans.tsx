@@ -13,11 +13,20 @@ export function SubscriptionPlans() {
 
   const handleSubscribe = async (priceId: string) => {
     try {
+      console.log('Starting checkout process...');
       setError(null);
       setIsProcessing(true);
-      await createCheckoutSession(priceId);
+      const url = await createCheckoutSession(priceId);
+      console.log('Received checkout URL:', url);
+      if (url) {
+        console.log('Redirecting to:', url);
+        window.location.href = url;
+      } else {
+        console.error('No checkout URL received');
+        setError('Failed to create checkout session. Please try again.');
+      }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      console.error('Error in handleSubscribe:', error);
       setError(error instanceof Error ? error.message : 'Failed to start checkout process. Please try again.');
     } finally {
       setIsProcessing(false);

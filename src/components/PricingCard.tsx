@@ -18,9 +18,18 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, isCurrentPlan = 
   const { createCheckoutSession, isLoading, error } = useSubscription();
 
   const handleSubscribe = async () => {
-    const url = await createCheckoutSession(plan.priceId);
-    if (url) {
-      window.location.href = url;
+    try {
+      console.log('Starting checkout process...');
+      const url = await createCheckoutSession(plan.priceId);
+      console.log('Received checkout URL:', url);
+      if (url) {
+        console.log('Redirecting to:', url);
+        window.location.href = url;
+      } else {
+        console.error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Error in handleSubscribe:', error);
     }
   };
 
