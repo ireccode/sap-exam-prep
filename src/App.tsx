@@ -17,6 +17,7 @@ import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSuccessPage';
 import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelPage';
+import { RoadmapPage } from './components/roadmap/RoadmapPage';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -90,6 +91,14 @@ const SafeProfileForm = () => (
   </ErrorBoundary>
 );
 
+const SafeRoadmap = () => (
+  <ErrorBoundary>
+    <ProtectedRoute>
+      <RoadmapPage />
+    </ProtectedRoute>
+  </ErrorBoundary>
+);
+
 function AppContent() {
   const { isLoading, user } = useAuth();
   console.log('AppContent render - isLoading:', isLoading, 'user:', user?.email);
@@ -137,18 +146,13 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ErrorBoundary>
-        <Header />
-      </ErrorBoundary>
-      <main className="container mx-auto px-4 py-8">
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } />
+          <Route path="/roadmap" element={<SafeRoadmap />} />
           <Route path="/training" element={<SafeTrainingDeck />} />
           <Route path="/mini-exam" element={<SafeMiniExam />} />
           <Route path="/ai-chat" element={<SafeAIChat />} />
@@ -156,12 +160,9 @@ function AppContent() {
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
           <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-      <ErrorBoundary>
-        <BottomNav />
-      </ErrorBoundary>
+      <BottomNav />
     </div>
   );
 }
@@ -181,6 +182,7 @@ export function App() {
                     <Home />
                   </ProtectedRoute>
                 } />
+                <Route path="/roadmap" element={<SafeRoadmap />} />
                 <Route path="/training" element={<SafeTrainingDeck />} />
                 <Route path="/mini-exam" element={<SafeMiniExam />} />
                 <Route path="/ai-chat" element={<SafeAIChat />} />

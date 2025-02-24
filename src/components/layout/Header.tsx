@@ -1,5 +1,5 @@
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
-import { Shield, LogOut, User } from "lucide-react";
+import { Shield, LogOut, User, Map } from "lucide-react";
 import { useExamStore } from "@/store/useExamStore";
 import { useTrainingStore } from "@/store/useTrainingStore";
 import { useNavigate } from "react-router-dom";
@@ -25,38 +25,50 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
-      <div className="container flex h-16 items-center px-4">
+      <div className="container flex h-16 items-center px-2 sm:px-4">
         <button 
           onClick={() => handleNavigation('/')}
           className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
         >
           <Shield className="h-6 w-6 text-blue-600" />
-          <span className="text-xl font-bold">SAP Architect Prep</span>
+          <span className="text-lg sm:text-xl font-bold">
+            <span className="hidden sm:inline">SAP Architect Exam Prep</span>
+            <span className="sm:hidden">SAP Exam Prep</span>
+          </span>
         </button>
-        <NavigationMenu className="ml-auto">
+        <NavigationMenu className="ml-auto hidden md:block">
           <NavigationMenuList>
             {user ? (
               <>
                 <NavigationMenuItem>
                   <button
-                    onClick={() => handleNavigation('/training')}
-                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    onClick={() => handleNavigation('/roadmap')}
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
-                    Training Deck
+                    <Map className="w-4 h-4 mr-2" />
+                    Roadmap
+                  </button>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <button
+                    onClick={() => handleNavigation('/training')}
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  >
+                    Training
                   </button>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <button
                     onClick={() => handleNavigation('/mini-exam')}
-                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
-                    Mini Exam
+                    Exam
                   </button>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <button
                     onClick={() => handleNavigation('/ai-chat')}
-                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
                     AI Assistant
                   </button>
@@ -64,19 +76,18 @@ export function Header() {
                 <NavigationMenuItem>
                   <button
                     onClick={() => handleNavigation('/profile')}
-                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
                     <User className="w-4 h-4 mr-2" />
-                    Profile
+                    Profile                  
                   </button>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <button
                     onClick={handleSignOut}
-                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                    <LogOut className="w-4 h-4" />
                   </button>
                 </NavigationMenuItem>
               </>

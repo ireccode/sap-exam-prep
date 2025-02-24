@@ -17,7 +17,7 @@ const pricingPlans = [
   },
   {
     title: 'Premium',
-    price: 19,
+    price: 29,
     description: 'Full access to all features',
     features: [
       'Complete question bank access',

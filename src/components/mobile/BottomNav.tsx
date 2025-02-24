@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Book, Brain, MessageSquare, Home, LogIn, User } from 'lucide-react';
+import { Book, Brain, MessageSquare, Home, LogIn, User, Map } from 'lucide-react';
 import { useExamStore } from "@/store/useExamStore";
 import { useTrainingStore } from "@/store/useTrainingStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ export function BottomNav() {
 
   const authenticatedNavItems = [
     { path: '/', icon: Home, label: 'Home' },
+    { path: '/roadmap', icon: Map, label: 'Roadmap' },
     { path: '/training', icon: Book, label: 'Training' },
     { path: '/mini-exam', icon: Brain, label: 'Exam' },
     { path: '/ai-chat', icon: MessageSquare, label: 'Chat' },

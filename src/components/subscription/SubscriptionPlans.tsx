@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Shield, Check, X, Loader2, AlertCircle } from 'lucide-react';
+import { Shield, Check, X, Loader2, AlertCircle, Smartphone } from 'lucide-react';
 
 export function SubscriptionPlans() {
   const { subscription, isLoading, createCheckoutSession, createCustomerPortalSession, cancelSubscription, reactivateSubscription } = useSubscription();
@@ -125,6 +125,13 @@ export function SubscriptionPlans() {
               <span>Practice exams</span>
             </li>
             <li className="flex items-center">
+              <Check className="w-5 h-5 text-green-500 mr-2" />
+              <span className="flex items-center">
+                Mobile access
+                <Smartphone className="w-4 h-4 ml-2 text-blue-500" />
+              </span>
+            </li>
+            <li className="flex items-center">
               <X className="w-5 h-5 text-red-500 mr-2" />
               <span className="text-gray-500">Premium question bank</span>
             </li>
@@ -151,7 +158,7 @@ export function SubscriptionPlans() {
             <h3 className="text-xl font-bold">Premium Plan</h3>
             <Shield className="w-6 h-6 text-blue-600" />
           </div>
-          <p className="text-3xl font-bold mb-6">$19 <span className="text-gray-500 text-base font-normal">/month</span></p>
+          <p className="text-3xl font-bold mb-6">$29 <span className="text-gray-500 text-base font-normal">/month</span></p>
           <ul className="space-y-3 mb-6">
             <li className="flex items-center">
               <Check className="w-5 h-5 text-green-500 mr-2" />
