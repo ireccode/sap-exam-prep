@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
 import { BottomNav } from './components/mobile/BottomNav';
 import { AIChat } from './components/chat/AIChat';
 import { MiniExam } from './components/exam/MiniExam';
@@ -18,6 +19,7 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSuccessPage';
 import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelPage';
 import { RoadmapPage } from './components/roadmap/RoadmapPage';
+import { TermsAndConditions } from './components/legal/TermsAndConditions';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -99,82 +101,14 @@ const SafeRoadmap = () => (
   </ErrorBoundary>
 );
 
-function AppContent() {
-  const { isLoading, user } = useAuth();
-  console.log('AppContent render - isLoading:', isLoading, 'user:', user?.email);
-
-  const initializeApp = async () => {
-    try {
-      console.log('Initializing app...');
-      await questionBank.initialize();
-      
-      const progressStore = useProgressStore.getState();
-      progressStore.categoryProgress = {};
-      progressStore.examHistory = [];
-      
-      const categories = questionBank.getCategories();
-      
-      categories.forEach(category => {
-        progressStore.categoryProgress[category] = {
-          completedCount: 0,
-          correctCount: 0,
-          answeredQuestions: {},
-          weakAreas: [],
-          strengths: []
-        };
-      });
-      console.log('App initialization complete');
-    } catch (error) {
-      console.error('Failed to initialize app:', error);
-    }
-  };
-
-  useEffect(() => {
-    initializeApp();
-  }, []);
-
-  if (isLoading) {
-    console.log('Showing loading spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/roadmap" element={<SafeRoadmap />} />
-          <Route path="/training" element={<SafeTrainingDeck />} />
-          <Route path="/mini-exam" element={<SafeMiniExam />} />
-          <Route path="/ai-chat" element={<SafeAIChat />} />
-          <Route path="/profile" element={<SafeProfileForm />} />
-          <Route path="/subscription" element={<SubscriptionPage />} />
-          <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
-          <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
-        </Routes>
-      </main>
-      <BottomNav />
-    </div>
-  );
-}
-
 export function App() {
   return (
     <Router>
       <AuthProvider>
         <SubscriptionProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 flex-grow">
               <Routes>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/" element={
@@ -182,6 +116,7 @@ export function App() {
                     <Home />
                   </ProtectedRoute>
                 } />
+                <Route path="/terms" element={<TermsAndConditions />} />
                 <Route path="/roadmap" element={<SafeRoadmap />} />
                 <Route path="/training" element={<SafeTrainingDeck />} />
                 <Route path="/mini-exam" element={<SafeMiniExam />} />
@@ -193,6 +128,7 @@ export function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
+            <Footer />
             <BottomNav />
           </div>
         </SubscriptionProvider>
