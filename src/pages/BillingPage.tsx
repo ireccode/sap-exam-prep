@@ -27,7 +27,7 @@ const pricingPlans = [
       'Custom study plans',
       'Mock exams',
     ],
-    priceId: import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID,
+    priceId: import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID || '',
   },
 ];
 

@@ -9,7 +9,7 @@ export function SubscriptionPlans() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const PREMIUM_PRICE_ID = import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID || 'price_1QuQ5VLqVp8miPvfjHZZEeMY';
+  const PREMIUM_PRICE_ID = import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID;
 
   const handleSubscribe = async (priceId: string) => {
     try {
