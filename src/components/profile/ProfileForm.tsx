@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/types/supabase';
+import { SubscriptionStatus } from './SubscriptionStatus';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -53,7 +54,9 @@ export function ProfileForm() {
     <div className="max-w-2xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <SubscriptionStatus />
+      
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow-md p-6">
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-gray-700">
             Username
