@@ -20,6 +20,7 @@ import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSucces
 import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelPage';
 import { RoadmapPage } from './components/roadmap/RoadmapPage';
 import { TermsAndConditions } from './components/legal/TermsAndConditions';
+import { ContactPage } from '@/pages/ContactPage';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -125,6 +126,7 @@ export function App() {
                 <Route path="/subscription" element={<SubscriptionPage />} />
                 <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                 <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+                <Route path="/contact" element={<ContactPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

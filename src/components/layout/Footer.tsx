@@ -20,12 +20,12 @@ export function Footer() {
               Terms & Conditions
             </Link>
             <span className="text-gray-400">•</span>
-            <a
-              href="mailto:support@saparchitectprep.com"
+            <Link
+              to="/contact"
               className="text-gray-600 hover:text-blue-600 transition-colors"
             >
               Contact Support
-            </a>
+            </Link>
             <span className="text-gray-400">•</span>
             <span className="text-gray-500">© {new Date().getFullYear()} SAP Architect Exam Prep</span>
           </div>
