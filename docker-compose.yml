@@ -13,6 +13,7 @@ services:
         - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
         - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
         - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
+        - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     container_name: sap-exam-prep-app
     ports:
       - "80:80"      # Production port
@@ -26,6 +27,7 @@ services:
       - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
       - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
       - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
+      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     restart: unless-stopped
     volumes:
       - ./logs:/var/log/nginx
