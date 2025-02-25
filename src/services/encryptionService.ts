@@ -2,19 +2,21 @@ import { Question } from '@/types/question';
 
 export class EncryptionService {
   private static instance: EncryptionService;
-  private encryptionKey: string;
+  private premiumEncryptionKey: string;
+  private basicEncryptionKey: string;
   private encoder: TextEncoder;
   private decoder: TextDecoder;
 
   private constructor() {
-    // Get encryption key from either Vite's import.meta.env or Node's process.env
-    this.encryptionKey = typeof process !== 'undefined' ? 
-      process.env.VITE_PREMIUM_ENCRYPTION_KEY! :
-      import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY;
+    const premiumKey = import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY;
+    const basicKey = import.meta.env.VITE_BASIC_ENCRYPTION_KEY;
 
-    if (!this.encryptionKey) {
-      throw new Error('Encryption key not found in environment variables');
+    if (!premiumKey || !basicKey) {
+      throw new Error('Missing encryption keys in environment variables');
     }
+
+    this.premiumEncryptionKey = premiumKey;
+    this.basicEncryptionKey = basicKey;
     this.encoder = new TextEncoder();
     this.decoder = new TextDecoder();
   }
@@ -26,10 +28,10 @@ export class EncryptionService {
     return EncryptionService.instance;
   }
 
-  private async deriveKey(salt: Uint8Array): Promise<CryptoKey> {
+  private async deriveKey(salt: Uint8Array, isBasic: boolean = false): Promise<CryptoKey> {
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      this.encoder.encode(this.encryptionKey),
+      this.encoder.encode(isBasic ? this.basicEncryptionKey : this.premiumEncryptionKey),
       { name: 'PBKDF2' },
       false,
       ['deriveBits', 'deriveKey']
@@ -49,14 +51,14 @@ export class EncryptionService {
     );
   }
 
-  public async encryptQuestions(questions: Question[]): Promise<string> {
+  public async encryptQuestions(questions: Question[], isBasic: boolean = false): Promise<string> {
     try {
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await this.deriveKey(salt);
+      const key = await this.deriveKey(salt, isBasic);
 
       const data = this.encoder.encode(JSON.stringify(questions));
-      const encryptedContent = await crypto.subtle.encrypt(
+      const encrypted = await crypto.subtle.encrypt(
         {
           name: 'AES-GCM',
           iv
@@ -65,46 +67,44 @@ export class EncryptionService {
         data
       );
 
-      // Combine salt, iv, and encrypted content
-      const combinedData = new Uint8Array(salt.length + iv.length + encryptedContent.byteLength);
-      combinedData.set(salt, 0);
-      combinedData.set(iv, salt.length);
-      combinedData.set(new Uint8Array(encryptedContent), salt.length + iv.length);
+      const encryptedArray = new Uint8Array(encrypted);
+      const result = this.concatUint8Arrays(
+        this.concatUint8Arrays(salt, iv),
+        encryptedArray
+      );
 
-      // Convert to base64 for storage
-      return btoa(String.fromCharCode(...combinedData));
+      return btoa(String.fromCharCode(...result));
     } catch (error) {
       console.error('Error encrypting questions:', error);
       throw new Error('Failed to encrypt questions');
     }
   }
 
-  public async decryptQuestions(encryptedData: string): Promise<Question[]> {
+  public async decryptQuestions(encryptedData: string, isBasic: boolean = false): Promise<Question[]> {
     try {
-      // Convert from base64
-      const data = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-
-      // Extract components
-      const salt = data.slice(0, 16);
-      const iv = data.slice(16, 28);
-      const encryptedContent = data.slice(28);
-
-      // Derive the key
-      const key = await this.deriveKey(salt);
-
-      // Decrypt the content
-      const decryptedContent = await crypto.subtle.decrypt(
-        {
-          name: 'AES-GCM',
-          iv,
-          tagLength: 128 // 16 bytes * 8 = 128 bits
-        },
-        key,
-        encryptedContent
+      const data = new Uint8Array(
+        atob(encryptedData)
+          .split('')
+          .map(char => char.charCodeAt(0))
       );
 
-      const decryptedText = this.decoder.decode(decryptedContent);
-      return JSON.parse(decryptedText);
+      const salt = data.slice(0, 16);
+      const iv = data.slice(16, 28);
+      const encrypted = data.slice(28);
+
+      const key = await this.deriveKey(salt, isBasic);
+
+      const decrypted = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv
+        },
+        key,
+        encrypted
+      );
+
+      const decoded = this.decoder.decode(decrypted);
+      return JSON.parse(decoded);
     } catch (error) {
       console.error('Error decrypting questions:', error);
       throw new Error('Failed to decrypt questions');

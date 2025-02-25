@@ -19,7 +19,14 @@ A modern web application designed to help users prepare for SAP Architect certif
 - Mock exams
 - Encrypted premium content
 
-### 🔐 Authentication & User Management
+### 🔐 Security Features
+- AES-256-GCM encryption for both basic and premium content
+- Secure key derivation using PBKDF2
+- Environment-based encryption key management
+- Separate encryption keys for basic and premium content
+- Web Crypto API for client-side encryption/decryption
+
+### 🔑 Authentication & User Management
 - Secure user authentication via Supabase
 - User profile management
 - Subscription management through Stripe
@@ -38,56 +45,54 @@ A modern web application designed to help users prepare for SAP Architect certif
 - Supabase (Database & Authentication)
 - Stripe (Payment Processing)
 - Nginx (Production Server)
-- Docker (Containerization)
 
-### APIs & Integrations
-- Supabase API
-- Stripe API
-- OpenRouter API (AI Chat)
-
-## Installation
+## Development
 
 ### Prerequisites
-- Node.js 20 or higher
-- Docker and Docker Compose
-- Supabase account
-- Stripe account
+```bash
+# Required environment variables
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+VITE_STRIPE_PREMIUM_PRICE_ID=your_price_id
+VITE_BASIC_ENCRYPTION_KEY=your_basic_key
+VITE_PREMIUM_ENCRYPTION_KEY=your_premium_key
+```
 
-### Local Development Setup
-1. Clone the repository:
-   ```bash
-   git clone [repository-url]
-   cd sap-exam-prep
-   ```
+### Setup
+```bash
+# Install dependencies
+npm install
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+# Encrypt content
+npm run encrypt-basic    # Encrypt basic content
+npm run encrypt-premium  # Encrypt premium content
 
-3. Create a `.env` file in the root directory:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
-   VITE_STRIPE_PREMIUM_PRICE_ID=your_price_id
-   VITE_OPENROUTER_API_KEY=your_openrouter_key
-   VITE_PREMIUM_ENCRYPTION_KEY=your_encryption_key
-   VITE_WEBHOOK_SECRET=your_webhook_secret
-   ```
+# Development
+npm run dev
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+# Production build
+npm run build
+npm run preview  # Preview production build locally
+```
 
-### Docker Production Deployment
-1. Build and start the container:
-   ```bash
-   docker-compose up --build
-   ```
+### Docker Deployment
+```bash
+# Build and run with Docker
+docker-compose up --build
+```
 
-2. Access the application at `http://localhost:5175`
+## Testing
+```bash
+# Run tests
+npm run test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
 
 ## Project Structure
 ```
@@ -180,3 +185,68 @@ is proprietary and confidential. All rights reserved. No part of the question ba
 
 ## Support
 For support, please contact ireknie00@gmail.com
+
+## Deployment
+
+### 🐳 Docker Deployment
+- Built with Docker for easy deployment and testing
+- Supports both production and development environments
+- Available ports:
+  - Port 80: Production environment
+  - Port 5173: Development environment (for Stripe testing)
+
+### 🚀 Quick Start with Docker
+1. Clone the repository
+2. Create a `.env` file with required environment variables:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_key
+   VITE_STRIPE_PREMIUM_PRICE_ID=your_premium_price_id
+   VITE_BASIC_ENCRYPTION_KEY=your_basic_key
+   VITE_PREMIUM_ENCRYPTION_KEY=your_premium_key
+   VITE_WEBHOOK_SECRET=your_webhook_secret
+   ```
+3. Build and run with Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+4. Access the application:
+   - Production: http://localhost:80
+   - Development/Stripe Testing: http://localhost:5173
+
+### 🔧 Development Setup
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start development server:
+   ```bash
+   npm run dev
+   ```
+3. Run Stripe webhook listener:
+   ```bash
+   stripe listen --forward-to localhost:5173/api/webhook
+   ```
+
+### 📦 Build and Preview
+1. Create production build:
+   ```bash
+   npm run build
+   ```
+2. Preview production build:
+   ```bash
+   npm run preview
+   ```
+
+### 🧪 Testing
+```bash
+# Run all tests
+npm run test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```

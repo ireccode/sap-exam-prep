@@ -22,27 +22,35 @@ class QuestionBankService {
     if (this.initialized) return;
     
     try {
-      // Load basic questions
-      const basicResponse = await fetch('/basic_btp_query_bank.json');
+      // Load and decrypt basic questions
+      const basicResponse = await fetch('/btp_query_bank.encrypted');
       if (!basicResponse.ok) {
         throw new Error('Failed to load basic questions');
       }
-      const basicData = await basicResponse.json();
-      this.basicQuestions = (basicData.questions || []).map((q: any) => ({
-        ...q,
-        isPremium: false
-      }));
+      const encryptedBasicData = await basicResponse.text();
+      
+      try {
+        const decryptedBasicQuestions = await this.encryptionService.decryptQuestions(encryptedBasicData, true);
+        this.basicQuestions = decryptedBasicQuestions.map(q => ({
+          ...q,
+          isPremium: false
+        }));
+        console.log('Successfully loaded and decrypted basic questions');
+      } catch (decryptError) {
+        console.error('Failed to decrypt basic questions:', decryptError);
+        this.basicQuestions = [];
+      }
 
       // Load and decrypt premium questions
       const premiumResponse = await fetch('/premium_btp_query_bank.encrypted');
       if (!premiumResponse.ok) {
         throw new Error('Failed to load premium questions');
       }
-      const encryptedData = await premiumResponse.text();
+      const encryptedPremiumData = await premiumResponse.text();
       
       try {
-        const decryptedQuestions = await this.encryptionService.decryptQuestions(encryptedData);
-        this.premiumQuestions = decryptedQuestions.map(q => ({
+        const decryptedPremiumQuestions = await this.encryptionService.decryptQuestions(encryptedPremiumData, false);
+        this.premiumQuestions = decryptedPremiumQuestions.map(q => ({
           ...q,
           isPremium: true
         }));
