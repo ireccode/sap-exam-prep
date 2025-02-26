@@ -31,52 +31,30 @@ export class AIService {
   
     async getExplanation(question: string): Promise<string> {
       try {
-        const response = await fetch(`${this.BASE_URL}/chat/completions`, {
+        const apiUrl = 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat';
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${this.OPENROUTER_API_KEY}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'SAP Architect Exam Prep'
+            'Authorization': `Bearer ${this.OPENROUTER_API_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
           },
           body: JSON.stringify({
-            model: this.selectedModel.id,
-            route: 'fallback',
-            fallbacks: ['openai/gpt-3.5-turbo'], // Add fallback option
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a SAP Architecture expert. Provide detailed explanations based on official SAP documentation.'
-              },
-              {
-                role: 'user',
-                content: `${this.getRAGContext(question)}\n\nQuestion: ${question}`
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: this.calculateMaxTokens()
+            question: `${this.getRAGContext(question)}\n\nQuestion: ${question}`,
+            modelId: this.selectedModel.id
           })
         });
-    
+
         if (!response.ok) {
-          const errorData = await response.json();
-          if (errorData.error?.message?.includes('No endpoints found')) {
-            // Automatically fallback to GPT-3.5-turbo
-            this.selectedModel = MODELS.find(m => m.id === 'openai/gpt-3.5-turbo')!;
-            return this.getExplanation(question);
-          }
+          const errorData = await response.json().catch(() => ({ error: { message: 'Invalid JSON response' } }));
           throw new Error(errorData.error?.message || 'Failed to get response');
         }
-    
+
         const data = await response.json();
         return data.choices[0].message.content;
       } catch (error) {
         console.error('AI Service Error:', error);
-        if (error instanceof Error && error.message.includes('No endpoints found')) {
-          // Fallback to GPT-3.5-turbo
-          this.selectedModel = MODELS.find(m => m.id === 'openai/gpt-3.5-turbo')!;
-          return this.getExplanation(question);
-        }
         throw error;
       }
     }
