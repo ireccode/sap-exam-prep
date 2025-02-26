@@ -31,7 +31,7 @@ export class AIService {
   
     async getExplanation(question: string): Promise<string> {
       try {
-        const apiUrl = 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat';
+        const apiUrl = '/functions/v1/chat';
 
         const response = await fetch(apiUrl, {
           method: 'POST',
