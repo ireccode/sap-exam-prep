@@ -31,13 +31,17 @@ export class AIService {
   
     async getExplanation(question: string): Promise<string> {
       try {
-        const apiUrl = '/functions/v1/chat';
+        const apiUrl = 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat';
+        console.log('Sending request to:', apiUrl);
+        console.log('Request payload:', {
+          question: `${this.getRAGContext(question)}\n\nQuestion: ${question}`,
+          modelId: this.selectedModel.id
+        });
 
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.OPENROUTER_API_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
           },
           body: JSON.stringify({
@@ -47,14 +51,39 @@ export class AIService {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: { message: 'Invalid JSON response' } }));
-          throw new Error(errorData.error?.message || 'Failed to get response');
+          const errorText = await response.text();
+          console.error('Response not OK:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorText
+          });
+          
+          let errorMessage;
+          try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.error?.message || 'Unknown error occurred';
+          } catch (e) {
+            errorMessage = errorText || 'Failed to get response';
+          }
+          
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (!data.choices?.[0]?.message?.content) {
+          console.error('Invalid response format:', data);
+          throw new Error('Invalid response format from server');
+        }
+
         return data.choices[0].message.content;
       } catch (error) {
-        console.error('AI Service Error:', error);
+        console.error('AI Service Error:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
         throw error;
       }
     }

@@ -16,10 +16,13 @@ services:
         - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     container_name: sap-exam-prep-app
     ports:
-      - "80:80"      # Production port
-      - "5173:5173"  # Development port for Stripe testing
+      - "80:80"
+      - "443:443"
     environment:
       - NODE_ENV=production
+      - VIRTUAL_HOST=examprep.techtreasuretrove.in
+      - VIRTUAL_PROTO=https
+      - LETSENCRYPT_HOST=examprep.techtreasuretrove.in
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
       - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
@@ -33,6 +36,10 @@ services:
       - ./logs:/var/log/nginx
       - ./data:/app/data
       - ./dist:/app/public
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+    networks:
+      - app-network
 
 networks:
   app-network:

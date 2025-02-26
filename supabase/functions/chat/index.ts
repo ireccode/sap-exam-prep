@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
-const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+const OPENROUTER_API_KEY = Deno.env.get('VITE_OPENROUTER_API_KEY');
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -33,106 +33,101 @@ const MODELS = [
 ];
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
   }
 
   try {
-    const { question, modelId } = await req.json();
-
+    // Check for API key and validate format
     if (!OPENROUTER_API_KEY) {
+      console.error('OpenRouter API key not found in environment variables');
       throw new Error('Missing OpenRouter API key');
     }
 
-    // Select model (default to first model if not specified)
-    let selectedModel = MODELS[0];
-    if (modelId) {
-      const model = MODELS.find(m => m.id === modelId);
-      if (!model) throw new Error('Invalid model ID');
-      selectedModel = model;
+    if (!OPENROUTER_API_KEY.startsWith('sk-or-')) {
+      console.error('Invalid OpenRouter API key format - should start with sk-or-');
+      throw new Error('Invalid OpenRouter API key format');
     }
 
-    const maxTokens = Math.floor(selectedModel.contextWindow * 0.7);
+    // Parse request body
+    const { question, modelId } = await req.json();
+    console.log('Received request with modelId:', modelId);
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://github.com/ireclipse/sap-exam-prep',
-        'X-Title': 'SAP Architect Exam Prep'
-      },
-      body: JSON.stringify({
-        model: selectedModel.id,
-        route: 'fallback',
-        fallbacks: ['openai/gpt-3.5-turbo'],
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a SAP Architecture expert. Provide detailed explanations based on official SAP documentation.'
-          },
-          {
-            role: 'user',
-            content: question
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: maxTokens
-      }),
+    if (!question) {
+      throw new Error('Missing question in request body');
+    }
+
+    // Validate model ID
+    const model = MODELS.find(m => m.id === modelId);
+    if (!model) {
+      throw new Error('Invalid model ID');
+    }
+
+    console.log('Making request to OpenRouter API with model:', modelId);
+
+    // Prepare headers for OpenRouter API request
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENROUTER_API_KEY.trim()}`, // Ensure no whitespace
+      'HTTP-Referer': 'https://examprep.techtreasuretrove.in',
+      'X-Title': 'SAP Architect Exam Prep'
+    };
+
+    // Log API key format for debugging (safely)
+    console.log('API Key validation:', {
+      format: 'Bearer sk-or-****',
+      length: OPENROUTER_API_KEY.length,
+      startsWithCorrectPrefix: OPENROUTER_API_KEY.startsWith('sk-or-'),
+      hasNoWhitespace: OPENROUTER_API_KEY.trim() === OPENROUTER_API_KEY
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      if (errorData.error?.message?.includes('No endpoints found')) {
-        // Automatically fallback to GPT-3.5-turbo
-        selectedModel = MODELS.find(m => m.id === 'openai/gpt-3.5-turbo')!;
-        // Retry with fallback model
-        return await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://github.com/ireclipse/sap-exam-prep',
-            'X-Title': 'SAP Architect Exam Prep'
-          },
-          body: JSON.stringify({
-            model: selectedModel.id,
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a SAP Architecture expert. Provide detailed explanations based on official SAP documentation.'
-              },
-              {
-                role: 'user',
-                content: question
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: maxTokens
-          }),
-        });
-      }
-      throw new Error(errorData.error?.message || 'Failed to get response');
+    // Make request to OpenRouter API
+    const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: modelId,
+        messages: [{ role: 'user', content: question }]
+      })
+    });
+
+    if (!openRouterResponse.ok) {
+      const error = await openRouterResponse.text();
+      console.error('OpenRouter API Error:', {
+        status: openRouterResponse.status,
+        statusText: openRouterResponse.statusText,
+        error,
+        headers: Object.fromEntries(openRouterResponse.headers.entries())
+      });
+      throw new Error('OpenRouter API error: ' + openRouterResponse.statusText);
     }
 
-    const data = await response.json();
-
+    const data = await openRouterResponse.json();
+    console.log('Received response from OpenRouter API');
+    
     return new Response(JSON.stringify(data), {
       headers: {
         ...CORS_HEADERS,
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     });
+
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Edge Function Error:', error);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: {
+          message: error.message || 'Internal server error'
+        }
+      }),
       {
-        status: 500,
+        status: error.message.includes('Missing OpenRouter API key') ? 500 : 400,
         headers: {
           ...CORS_HEADERS,
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
