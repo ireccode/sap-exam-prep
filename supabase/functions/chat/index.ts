@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import {MODELS, systemPrompt} from 'services/aiConfig.ts'
 
 const OPENROUTER_API_KEY = Deno.env.get('VITE_OPENROUTER_API_KEY');
 const CORS_HEADERS = {
@@ -7,30 +8,9 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Define available models
-const MODELS = [
-  {
-    id: 'meta-llama/llama-3.2-11b-vision-instruct:free',
-    name: 'Llama 3.2 11B Vision Instruct',
-    contextWindow: 4096,
-    costPer1kTokens: 0.00,
-    provider: 'Meta'
-  },
-  {
-    id: 'mistralai/mistral-7b-instruct',
-    name: 'Mistral 7B',
-    contextWindow: 8000,
-    costPer1kTokens: 0.0002,
-    provider: 'Mistral AI'
-  },
-  {
-    id: 'openai/gpt-3.5-turbo',
-    name: 'GPT-3.5 Turbo',
-    contextWindow: 4096,
-    costPer1kTokens: 0.0015,
-    provider: 'OpenAI'
-  }
-];
+
+
+
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -88,7 +68,10 @@ serve(async (req) => {
       headers,
       body: JSON.stringify({
         model: modelId,
-        messages: [{ role: 'user', content: question }]
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `${question.explanation} Provide more details from SAP documentation` }
+        ]
       })
     });
 
