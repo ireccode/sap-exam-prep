@@ -226,7 +226,7 @@ For support, please contact ireknie00@gmail.com
    ```
 3. Run Stripe webhook listener:
    ```bash
-   stripe listen --forward-to localhost:5173/api/webhook
+   stripe listen --forward-to https://[SUPABASE_URL]/functions/v1/webhook-handler
    ```
 
 ### 📦 Build and Preview

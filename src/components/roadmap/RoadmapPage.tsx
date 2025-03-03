@@ -33,7 +33,7 @@ const exams: ExamInfo[] = [
   {
     id: 'ea',
     title: 'SAP Certified Professional - SAP Enterprise Architect',
-    code: 'Coming Soon',
+    code: 'P_SAPEA_2023',
     status: 'future',
     description: 'Enterprise-wide architecture and digital transformation strategies.',
     isPremium: true
@@ -136,7 +136,7 @@ export function RoadmapPage() {
 
         <div className="mt-12 text-center">
           <p className="text-gray-600">
-            More certifications will be added to the roadmap soon.
+            More certifications will be available very soon.
           </p>
         </div>
       </div>

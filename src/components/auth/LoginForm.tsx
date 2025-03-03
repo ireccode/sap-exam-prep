@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function LoginForm() {
   const [isRegister, setIsRegister] = useState(false);
@@ -10,6 +10,11 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get redirect URL from query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const redirectTo = searchParams.get('redirect') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +28,8 @@ export function LoginForm() {
 
       if (error) throw error;
 
-      // Successful login/register
-      navigate('/');
+      // Successful login/register - redirect to the specified URL
+      navigate(redirectTo);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
