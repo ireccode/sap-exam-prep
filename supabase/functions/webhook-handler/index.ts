@@ -103,46 +103,118 @@ serve(async (req) => {
           throw new Error('No user ID in session metadata');
         }
 
-        // Update customers table
-        await supabaseAdmin.from('customers').upsert({
-          user_id: userId,
-          stripe_customer_id: session.customer as string,
-          created_at: new Date().toISOString()
-        });
+        console.log('Processing checkout.session.completed for user:', userId);
 
-        // Get subscription details
-        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+        try {
+          // First check if customer already exists
+          const { data: existingCustomer, error: customerFetchError } = await supabaseAdmin
+            .from('customers')
+            .select('stripe_customer_id')
+            .eq('user_id', userId)
+            .single();
 
-        // Update customer_subscriptions table
-        await supabaseAdmin.from('customer_subscriptions').insert({
-          id: subscription.id,
-          user_id: userId,
-          subscription_id: subscription.id,
-          price_id: subscription.items.data[0].price.id,
-          status: subscription.status,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-          canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-          trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-          trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null
-        });
+          if (customerFetchError && customerFetchError.code !== 'PGRST116') {
+            console.error('Error fetching existing customer:', customerFetchError);
+            throw customerFetchError;
+          }
 
-        // Update user's premium status
-        await supabaseAdmin.from('profiles').update({
-          is_premium: true,
-          updated_at: new Date().toISOString()
-        }).eq('id', userId);
+          // Only create/update customer if they don't exist or have different stripe_customer_id
+          if (!existingCustomer || existingCustomer.stripe_customer_id !== session.customer) {
+            const { error: customerError } = await supabaseAdmin.from('customers').upsert({
+              user_id: userId,
+              stripe_customer_id: session.customer as string,
+              created_at: new Date().toISOString()
+            });
 
-        // Add billing history
-        await supabaseAdmin.from('billing_history').insert({
-          user_id: userId,
-          amount: session.amount_total ? session.amount_total / 100 : 0,
-          currency: session.currency || 'usd',
-          status: 'succeeded',
-          invoice_url: null // Will be updated when invoice is generated
-        });
+            if (customerError) {
+              console.error('Error updating customers table:', customerError);
+              throw customerError;
+            }
+          }
+
+          // Get subscription details with expanded price
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string,
+            {
+              expand: ['items.data.price']
+            }
+          );
+
+          console.log('Retrieved subscription:', {
+            id: subscription.id,
+            status: subscription.status,
+            priceId: subscription.items.data[0]?.price?.id
+          });
+
+          // Update customer_subscriptions table with upsert
+          const subscriptionData = {
+            id: crypto.randomUUID(),
+            user_id: userId,
+            subscription_id: subscription.id,
+            price_id: subscription.items.data[0]?.price?.id,
+            status: subscription.status,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+            canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+            trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+            trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+            created_at: new Date().toISOString()
+          };
+
+          console.log('Upserting subscription data:', subscriptionData);
+
+          const { error: subscriptionError } = await supabaseAdmin
+            .from('customer_subscriptions')
+            .upsert(subscriptionData);
+
+          if (subscriptionError) {
+            console.error('Error updating customer_subscriptions table:', subscriptionError);
+            throw subscriptionError;
+          }
+
+          // Update user's premium status
+          const { error: profileError } = await supabaseAdmin.from('profiles').update({
+            is_premium: true,
+            updated_at: new Date().toISOString()
+          }).eq('id', userId);
+
+          if (profileError) {
+            console.error('Error updating profile:', profileError);
+            throw profileError;
+          }
+
+          // Check if billing history entry already exists
+          const { data: existingBilling } = await supabaseAdmin
+            .from('billing_history')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('amount', session.amount_total ? session.amount_total / 100 : 0)
+            .eq('status', 'succeeded')
+            .maybeSingle();
+
+          if (!existingBilling) {
+            // Add billing history only if it doesn't exist
+            const { error: billingError } = await supabaseAdmin.from('billing_history').insert({
+              user_id: userId,
+              amount: session.amount_total ? session.amount_total / 100 : 0,
+              currency: session.currency || 'usd',
+              status: 'succeeded',
+              invoice_url: null // Will be updated when invoice is generated
+            });
+
+            if (billingError) {
+              console.error('Error updating billing history:', billingError);
+              throw billingError;
+            }
+          }
+
+          console.log('Successfully processed checkout session for user:', userId);
+        } catch (error) {
+          console.error('Error processing checkout session:', error);
+          throw error;
+        }
 
         break;
       }
@@ -159,11 +231,8 @@ serve(async (req) => {
 
         if (!customer) break;
 
-        // Update subscription status
-        await supabaseAdmin.from('customer_subscriptions').upsert({
-          id: subscription.id,
-          user_id: customer.user_id,
-          subscription_id: subscription.id,
+        // Update subscription status by subscription_id, not id
+        await supabaseAdmin.from('customer_subscriptions').update({
           price_id: subscription.items.data[0].price.id,
           status: subscription.status,
           current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
@@ -173,7 +242,7 @@ serve(async (req) => {
           canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
           trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
           trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null
-        });
+        }).eq('subscription_id', subscription.id);
 
         // Update user's premium status
         await supabaseAdmin.from('profiles').update({
