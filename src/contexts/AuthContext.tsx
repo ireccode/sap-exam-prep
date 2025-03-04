@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthError, Session } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { User, AuthError, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import { useProgressStore } from '@/store/useProgressStore';
 import { useTrainingStore } from '@/store/useTrainingStore';
 import { UserService, UserRecord } from '@/services/UserService';
-import { Profile } from '@/types/profile';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 type AuthState = {
   session: Session | null;
@@ -45,6 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     error: null,
   });
 
+  // Add debounce ref
+  const lastSignInTime = useRef<number>(0);
+  const DEBOUNCE_DELAY = 1000; // 1 second
+
   // Initialize UserService
   const userService = new UserService(supabase);
 
@@ -71,18 +76,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
+          async (event: AuthChangeEvent, session) => {
             console.log('Auth state changed:', event, session?.user?.email);
             
             if (session?.user) {
-              if (event === 'SIGNED_IN') {
-                // Check subscription status and update profile if needed
-                const hasActiveSubscription = await checkSubscriptionStatus(session.user.id);
-                if (!hasActiveSubscription) {
-                  await updateProfile({ is_premium: false });
+              // Skip fetching user data for certain events where it's handled elsewhere
+              const skipFetchEvents: AuthChangeEvent[] = ['INITIAL_SESSION', 'TOKEN_REFRESHED', 'USER_UPDATED'];
+              
+              if (!skipFetchEvents.includes(event)) {
+                if (event === 'SIGNED_IN') {
+                  // Debounce SIGNED_IN events
+                  const now = Date.now();
+                  if (now - lastSignInTime.current < DEBOUNCE_DELAY) {
+                    console.log('Debouncing SIGNED_IN event');
+                    return;
+                  }
+                  lastSignInTime.current = now;
+
+                  // First fetch user data
+                  await fetchUserData(session.user.id);
+                  
+                  // Then check subscription status
+                  console.log('Checking subscription after sign in');
+                  const hasActiveSubscription = await checkSubscriptionStatus(session.user.id);
+                  
+                  // Update profile if needed and not already premium
+                  if (!hasActiveSubscription && state.profile && !state.profile.is_premium) {
+                    console.log('No active subscription and profile not premium, updating profile');
+                    await updateProfile({ is_premium: false });
+                  } else if (hasActiveSubscription && state.profile && !state.profile.is_premium) {
+                    console.log('Active subscription found but profile not premium, updating profile');
+                    await updateProfile({ is_premium: true });
+                  } else {
+                    console.log('Profile premium status matches subscription status:', state.profile?.is_premium);
+                  }
+                } else {
+                  await fetchUserData(session.user.id);
                 }
               }
-              await fetchUserData(session.user.id);
             } else {
               if (mounted) {
                 setState({
@@ -164,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function fetchUserData(userId: string) {
+  async function fetchUserData(userId: string, isSignUp = false) {
     console.log('Fetching user data for:', userId);
     try {
       // Get the current session to ensure we have a fresh user object
@@ -174,41 +205,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No user found');
       }
 
+      // For sign up, we don't need to fetch the user record as it's just been created
+      const userRecordPromise = isSignUp 
+        ? Promise.resolve(null)
+        : userService.getUserById(userId).catch(error => {
+            if (error.code === 'PGRST116' && isSignUp) {
+              // Expected during sign up
+              console.log('Note: User record not found (expected during sign up)');
+              return null;
+            }
+            console.error('Error fetching user record:', error);
+            return null;
+          });
+
       // Fetch both profile and user record
-      const [profileResponse, userRecord] = await Promise.all([
+      const [profileResponse, userRecordResult] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).single(),
-        userService.getUserById(userId)
+        userRecordPromise
       ]);
 
       // Handle profile
+      let profile = profileResponse.data;
       if (profileResponse.error) {
         console.log('Profile not found, attempting to create one');
-        const newProfile = await createProfile(userId, user.email || '');
+        profile = await createProfile(userId, user.email || '');
         
-        // If profile creation failed, throw error
-        if (!newProfile) {
+        if (!profile) {
+          console.error('Failed to create profile');
           throw new Error('Failed to create profile');
         }
-
-        setState({
-          session: null,
-          user,
-          userRecord,
-          profile: newProfile,
-          loading: false,
-          error: null,
-        });
-        return;
       }
 
-      console.log('Fetched profile:', profileResponse.data);
-      console.log('Fetched user record:', userRecord);
+      console.log('Fetched profile:', profile);
+      console.log('Fetched user record:', userRecordResult);
 
       setState({
         session: null,
         user,
-        userRecord,
-        profile: profileResponse.data,
+        userRecord: userRecordResult,
+        profile,
         loading: false,
         error: null,
       });
@@ -229,21 +264,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Checking subscription status for user:', userId);
       
+      // Skip subscription check if price ID is not configured
+      if (!import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID) {
+        console.log('Premium price ID not configured, skipping subscription check');
+        return false;
+      }
+
+      console.log('Using price ID:', import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID);
+
+      // First, log all subscriptions for debugging
+      const { data: allSubs, error: debugError } = await supabase
+        .from('customer_subscriptions')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (debugError) {
+        console.error('Error fetching all subscriptions:', debugError);
+      } else {
+        console.log('All subscriptions for user:', allSubs);
+      }
+
+      // Then check for active subscription
       const { data: subscription, error } = await supabase
         .from('customer_subscriptions')
         .select('*')
         .eq('user_id', userId)
-        .eq('price_id', import.meta.env.VITE_PREMIUM_PRICE_ID)
+        .eq('price_id', import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (error) {
+        // PGRST116 means no rows, which is expected for non-premium users
+        if (error.code === 'PGRST116') {
+          console.log('No active subscription found (expected for non-premium users)');
+          return false;
+        }
         console.error('Error checking subscription:', error);
         return false;
       }
 
       const isActive = !!subscription;
-      console.log('Subscription status:', isActive ? 'active' : 'inactive');
+      console.log('Subscription check result:', {
+        subscription,
+        isActive,
+        priceId: import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID
+      });
       return isActive;
     } catch (error) {
       console.error('Error in checkSubscriptionStatus:', error);
@@ -266,15 +331,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       useProgressStore.getState().reset();
       useTrainingStore.getState().resetTraining();
 
-      // Check subscription and fetch user data
-      if (data.user) {
-        const hasActiveSubscription = await checkSubscriptionStatus(data.user.id);
-        if (!hasActiveSubscription) {
-          await updateProfile({ is_premium: false });
-        }
-        await fetchUserData(data.user.id);
-      }
-
+      // Let the auth state change handler handle the rest
       return { error: null };
     } catch (error) {
       console.error('Error signing in:', error);
@@ -307,7 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const userRecord = await userService.createInitialUser({
           id: authData.user.id,
-          email: authData.user.email || '', // Handle potential undefined
+          email: authData.user.email || '',
           credits: 0,
           web_ui_enabled: false,
           role: 'user',
@@ -315,9 +372,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updated_at: new Date().toISOString()
         });
         console.log('Created initial user record:', userRecord);
+
+        // After creating user record, fetch user data with isSignUp flag
+        await fetchUserData(authData.user.id, true);
       } catch (userError) {
-        console.error('Error creating user record:', userError);
-        // Continue with sign up even if user record creation fails
+        // Log but don't throw - user record might already exist
+        console.log('Note: User record creation resulted in:', userError);
       }
 
       return { error: null };
@@ -351,9 +411,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function updateProfile(updates: Partial<Profile>) {
     try {
-      if (!state.user) throw new Error('No user logged in');
-
       setState(s => ({ ...s, loading: true }));
+
+      // Get fresh user data to avoid race conditions
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('No user found, cannot update profile');
+        setState(s => ({ ...s, loading: false }));
+        return { error: new Error('No user logged in') };
+      }
       
       // Add updated_at to the updates
       const updatesWithTimestamp = {
@@ -364,7 +431,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase
         .from('profiles')
         .update(updatesWithTimestamp)
-        .eq('id', state.user.id);
+        .eq('id', user.id);
 
       if (error) throw error;
 
@@ -372,7 +439,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: profile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', state.user.id)
+        .eq('id', user.id)
         .single();
 
       if (fetchError) throw fetchError;

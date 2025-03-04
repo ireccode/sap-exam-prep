@@ -109,6 +109,11 @@ export class UserService {
         .single();
 
       if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows found - this is expected for new users
+          console.log('No user record found (expected for new users)');
+          return null;
+        }
         console.error('Error fetching user:', error);
         throw error;
       }
