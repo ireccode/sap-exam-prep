@@ -1,23 +1,27 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
+import { User, AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/supabase';
 import { useProgressStore } from '@/store/useProgressStore';
 import { useTrainingStore } from '@/store/useTrainingStore';
+import { UserService, UserRecord } from '@/services/UserService';
+import { Profile } from '@/types/profile';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-
-interface AuthState {
+type AuthState = {
+  session: Session | null;
   user: User | null;
+  userRecord: UserRecord | null;
   profile: Profile | null;
-  isLoading: boolean;
-}
+  loading: boolean;
+  error: AuthError | null;
+};
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (profile: Partial<Profile>) => Promise<{ error: Error | null }>;
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
+  updateUserRecord: (updates: Partial<UserRecord>) => Promise<{ error: Error | null }>;
   isPremium: boolean;
 }
 
@@ -33,10 +37,16 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
+    session: null,
     user: null,
+    userRecord: null,
     profile: null,
-    isLoading: true,
+    loading: true,
+    error: null,
   });
+
+  // Initialize UserService
+  const userService = new UserService(supabase);
 
   useEffect(() => {
     let mounted = true;
@@ -55,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetchUserData(session.user.id);
         } else {
           if (mounted) {
-            setState(s => ({ ...s, isLoading: false }));
+            setState(s => ({ ...s, loading: false }));
           }
         }
 
@@ -65,27 +75,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('Auth state changed:', event, session?.user?.email);
             
             if (session?.user) {
+              if (event === 'SIGNED_IN') {
+                // Check subscription status and update profile if needed
+                const hasActiveSubscription = await checkSubscriptionStatus(session.user.id);
+                if (!hasActiveSubscription) {
+                  await updateProfile({ is_premium: false });
+                }
+              }
               await fetchUserData(session.user.id);
             } else {
               if (mounted) {
                 setState({
+                  session: null,
                   user: null,
+                  userRecord: null,
                   profile: null,
-                  isLoading: false,
+                  loading: false,
+                  error: null,
                 });
               }
             }
           }
         );
 
+        // Subscribe to user record changes
+        const userSubscription = session?.user ? supabase
+          .channel(`public:users:id=eq.${session.user.id}`)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'users',
+            filter: `id=eq.${session.user.id}`,
+          }, payload => {
+            if (mounted) {
+              setState(s => ({
+                ...s,
+                userRecord: payload.new as UserRecord
+              }));
+            }
+          })
+          .subscribe() : null;
+
         return () => {
           mounted = false;
           subscription.unsubscribe();
+          if (userSubscription) {
+            userSubscription.unsubscribe();
+          }
         };
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (mounted) {
-          setState(s => ({ ...s, isLoading: false }));
+          setState(s => ({ ...s, loading: false }));
         }
       }
     }
@@ -133,39 +174,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No user found');
       }
 
-      // Fetch profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Fetch both profile and user record
+      const [profileResponse, userRecord] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).single(),
+        userService.getUserById(userId)
+      ]);
 
-      if (profileError) {
+      // Handle profile
+      if (profileResponse.error) {
         console.log('Profile not found, attempting to create one');
         const newProfile = await createProfile(userId, user.email || '');
         
+        // If profile creation failed, throw error
+        if (!newProfile) {
+          throw new Error('Failed to create profile');
+        }
+
         setState({
+          session: null,
           user,
+          userRecord,
           profile: newProfile,
-          isLoading: false,
+          loading: false,
+          error: null,
         });
         return;
       }
 
-      console.log('Fetched profile:', profile);
+      console.log('Fetched profile:', profileResponse.data);
+      console.log('Fetched user record:', userRecord);
 
       setState({
+        session: null,
         user,
-        profile,
-        isLoading: false,
+        userRecord,
+        profile: profileResponse.data,
+        loading: false,
+        error: null,
       });
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // Don't clear user on profile error
       setState(s => ({ 
-        ...s,
-        isLoading: false 
+        session: null,
+        user: null,
+        userRecord: null,
+        profile: null,
+        loading: false,
+        error: error as AuthError,
       }));
+    }
+  }
+
+  async function checkSubscriptionStatus(userId: string): Promise<boolean> {
+    try {
+      console.log('Checking subscription status for user:', userId);
+      
+      const { data: subscription, error } = await supabase
+        .from('customer_subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('price_id', import.meta.env.VITE_PREMIUM_PRICE_ID)
+        .eq('status', 'active')
+        .single();
+
+      if (error) {
+        console.error('Error checking subscription:', error);
+        return false;
+      }
+
+      const isActive = !!subscription;
+      console.log('Subscription status:', isActive ? 'active' : 'inactive');
+      return isActive;
+    } catch (error) {
+      console.error('Error in checkSubscriptionStatus:', error);
+      return false;
     }
   }
 
@@ -184,8 +266,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       useProgressStore.getState().reset();
       useTrainingStore.getState().resetTraining();
 
-      // Fetch user profile
+      // Check subscription and fetch user data
       if (data.user) {
+        const hasActiveSubscription = await checkSubscriptionStatus(data.user.id);
+        if (!hasActiveSubscription) {
+          await updateProfile({ is_premium: false });
+        }
         await fetchUserData(data.user.id);
       }
 
@@ -196,54 +282,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signUp(email: string, password: string) {
-    console.log('Attempting sign up for:', email);
-    setState(s => ({ ...s, isLoading: true }));
+  const signUp = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
+      console.log('Attempting to sign up user:', email);
+      
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
         password,
-        options: {
-          data: {
-            is_premium: false
-          }
-        }
       });
-      if (error) {
-        console.error('Sign up error:', error);
-        setState(s => ({ ...s, isLoading: false }));
+
+      if (signUpError) {
+        console.error('Sign up error:', signUpError);
+        return { error: signUpError };
+      }
+
+      if (!authData.user) {
+        const error = new Error('No user data returned from sign up') as AuthError;
         return { error };
       }
 
-      // Don't wait for profile creation to complete
-      if (data.user) {
-        fetchUserData(data.user.id).catch(console.error);
+      console.log('User signed up successfully:', authData.user.id);
+
+      // Create initial user record
+      try {
+        const userRecord = await userService.createInitialUser({
+          id: authData.user.id,
+          email: authData.user.email || '', // Handle potential undefined
+          credits: 0,
+          web_ui_enabled: false,
+          role: 'user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        console.log('Created initial user record:', userRecord);
+      } catch (userError) {
+        console.error('Error creating user record:', userError);
+        // Continue with sign up even if user record creation fails
       }
 
       return { error: null };
     } catch (error) {
-      console.error('Sign up error:', error);
-      setState(s => ({ ...s, isLoading: false }));
+      console.error('Error in signUp:', error);
       return { error: error as AuthError };
     }
-  }
+  };
 
   async function signOut() {
     console.log('Signing out');
-    setState(s => ({ ...s, isLoading: true }));
+    setState(s => ({ ...s, loading: true }));
     try {
       await supabase.auth.signOut();
       // Reset stores on sign out
       useProgressStore.getState().reset();
       useTrainingStore.getState().resetTraining();
       setState({
+        session: null,
         user: null,
+        userRecord: null,
         profile: null,
-        isLoading: false,
+        loading: false,
+        error: null,
       });
     } catch (error) {
       console.error('Sign out error:', error);
-      setState(s => ({ ...s, isLoading: false }));
+      setState(s => ({ ...s, loading: false }));
     }
   }
 
@@ -251,7 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!state.user) throw new Error('No user logged in');
 
-      setState(s => ({ ...s, isLoading: true }));
+      setState(s => ({ ...s, loading: true }));
       
       // Add updated_at to the updates
       const updatesWithTimestamp = {
@@ -278,13 +380,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState(s => ({
         ...s,
         profile,
-        isLoading: false
+        loading: false
       }));
 
       return { error: null };
     } catch (error) {
       console.error('Error updating profile:', error);
-      setState(s => ({ ...s, isLoading: false }));
+      setState(s => ({ ...s, loading: false }));
+      return { error: error as Error };
+    }
+  }
+
+  async function updateUserRecord(updates: Partial<UserRecord>) {
+    try {
+      if (!state.user) throw new Error('No user logged in');
+
+      setState(s => ({ ...s, loading: true }));
+
+      const updatedRecord = await userService.upsertUser({
+        ...updates,
+        id: state.user.id
+      });
+
+      setState(s => ({
+        ...s,
+        userRecord: updatedRecord,
+        loading: false
+      }));
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error updating user record:', error);
+      setState(s => ({ ...s, loading: false }));
       return { error: error as Error };
     }
   }
@@ -295,6 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     updateProfile,
+    updateUserRecord,
     isPremium: state.profile?.is_premium ?? false,
   };
 
