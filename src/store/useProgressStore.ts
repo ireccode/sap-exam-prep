@@ -4,11 +4,26 @@ import { persist } from 'zustand/middleware';
 interface CategoryProgress {
   completedCount: number;
   correctCount: number;
-  lastAttempted?: Date;
-  answeredQuestions: Record<string, boolean>; // questionId -> correct/incorrect
-  weakAreas: string[]; // Topics/categories where performance is below threshold
-  strengths: string[]; // Topics/categories where performance is above threshold
+  totalCount: number;
+  lastAttempted: string;
+  answeredQuestions: Record<string, boolean>;
+  weakAreas: string[];
+  strengths: string[];
+  totalAttempts: number;
+  currentSessionCount: number;
 }
+
+const defaultProgress: CategoryProgress = {
+  completedCount: 0,
+  correctCount: 0,
+  totalCount: 0,
+  lastAttempted: '',
+  answeredQuestions: {},
+  weakAreas: [],
+  strengths: [],
+  totalAttempts: 0,
+  currentSessionCount: 0
+};
 
 interface ExamHistory {
   id: string;
@@ -23,77 +38,81 @@ interface ExamHistory {
 interface ProgressState {
   categoryProgress: Record<string, CategoryProgress>;
   examHistory: ExamHistory[];
+}
+
+interface ProgressActions {
   updateProgress: (category: string, questionId: string, isCorrect: boolean) => void;
   getCategoryProgress: (category: string) => CategoryProgress;
+  startNewTrainingSession: (category: string, questionCount: number) => void;
   addExamResult: (result: ExamHistory) => void;
   getWeakAreas: () => string[];
   getStrengths: () => string[];
   reset: () => void;
 }
 
-interface ProgressStore {
-  categoryProgress: Record<string, {
-    completedCount: number;
-    correctCount: number;
-    attempts: Record<string, boolean>;
-  }>;
-  resetProgress: () => void;
-}
-
-export const useProgressStore = create<ProgressState>()(
+export const useProgressStore = create<ProgressState & ProgressActions>()(
   persist(
     (set, get) => ({
       categoryProgress: {},
       examHistory: [],
 
-      updateProgress: (category, questionId, isCorrect) => set(state => {
-        const current = state.categoryProgress[category] || {
-          completedCount: 0,
-          correctCount: 0,
-          answeredQuestions: {},
-          weakAreas: [],
-          strengths: []
-        };
+      getCategoryProgress: (category: string) => {
+        return get().categoryProgress[category] || defaultProgress;
+      },
 
-        const updatedProgress = {
-          ...current,
-          completedCount: current.completedCount + 1,
-          correctCount: current.correctCount + (isCorrect ? 1 : 0),
-          lastAttempted: new Date(),
-          answeredQuestions: {
-            ...current.answeredQuestions,
-            [questionId]: isCorrect
+      updateProgress: (category: string, questionId: string, isCorrect: boolean) => {
+        set(state => {
+          const currentProgress = state.categoryProgress[category] || defaultProgress;
+          const updatedProgress: CategoryProgress = {
+            ...currentProgress,
+            completedCount: currentProgress.completedCount + 1,
+            correctCount: isCorrect ? currentProgress.correctCount + 1 : currentProgress.correctCount,
+            currentSessionCount: currentProgress.currentSessionCount + 1,
+            lastAttempted: new Date().toISOString(),
+            answeredQuestions: {
+              ...currentProgress.answeredQuestions,
+              [questionId]: isCorrect
+            }
+          };
+
+          // Only update totalAttempts when we complete all questions
+          if (updatedProgress.currentSessionCount === currentProgress.totalCount) {
+            updatedProgress.totalAttempts = (currentProgress.totalAttempts || 0) + 1;
+            // Don't reset currentSessionCount here - it should persist until new session starts
           }
-        };
 
-        // Calculate performance percentage
-        const performance = (updatedProgress.correctCount / updatedProgress.completedCount) * 100;
-        
-        // Update strengths and weak areas
-        if (performance < 70) {
-          updatedProgress.weakAreas = [...new Set([...current.weakAreas, category])];
-          updatedProgress.strengths = current.strengths.filter(c => c !== category);
-        } else if (performance > 85) {
-          updatedProgress.strengths = [...new Set([...current.strengths, category])];
-          updatedProgress.weakAreas = current.weakAreas.filter(c => c !== category);
-        }
+          return {
+            categoryProgress: {
+              ...state.categoryProgress,
+              [category]: updatedProgress
+            }
+          };
+        });
+      },
 
-        return {
-          categoryProgress: {
-            ...state.categoryProgress,
-            [category]: updatedProgress
-          }
-        };
-      }),
+      startNewTrainingSession: (category: string, questionCount: number) => {
+        set(state => {
+          const currentProgress = state.categoryProgress[category] || defaultProgress;
+          
+          // Only increment totalAttempts if previous session was completed
+          const wasLastSessionCompleted = currentProgress.currentSessionCount === currentProgress.totalCount;
+          const newTotalAttempts = wasLastSessionCompleted 
+            ? currentProgress.totalAttempts 
+            : currentProgress.totalAttempts;
 
-      getCategoryProgress: (category) => {
-        return get().categoryProgress[category] || {
-          completedCount: 0,
-          correctCount: 0,
-          answeredQuestions: {},
-          weakAreas: [],
-          strengths: []
-        };
+          return {
+            categoryProgress: {
+              ...state.categoryProgress,
+              [category]: {
+                ...currentProgress,
+                lastAttempted: new Date().toISOString(),
+                totalCount: questionCount,
+                currentSessionCount: 0, // Reset session count for new session
+                totalAttempts: newTotalAttempts
+              }
+            }
+          };
+        });
       },
 
       addExamResult: (result) => set(state => ({
@@ -123,7 +142,7 @@ export const useProgressStore = create<ProgressState>()(
       reset: () => set(() => ({
         categoryProgress: {},
         examHistory: []
-      })),
+      }))
     }),
     {
       name: 'exam-progress'

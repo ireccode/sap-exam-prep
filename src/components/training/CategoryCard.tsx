@@ -2,6 +2,7 @@ import React from 'react';
 import { Book, ArrowRight, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProgressStore } from '@/store/useProgressStore';
 
 interface CategoryCardProps {
   title: string;
@@ -10,6 +11,9 @@ interface CategoryCardProps {
   correctCount: number;
   isStarted: boolean;
   hasPremium: boolean;
+  totalQuestions?: number;
+  totalAttempts?: number;
+  currentSessionCount?: number;
   onClick: () => void;
 }
 
@@ -20,11 +24,25 @@ export function CategoryCard({
   correctCount,
   isStarted,
   hasPremium,
+  totalQuestions,
+  totalAttempts = 0,
+  currentSessionCount = 0,
   onClick 
 }: CategoryCardProps) {
   const { isPremium } = useAuth();
-  const progress = (completedCount / questionCount) * 100;
+  const progress = useProgressStore(state => state.getCategoryProgress(title));
+  
+  // Calculate progress based on current session
+  const sessionProgress = progress.totalCount > 0 
+    ? Math.min((progress.currentSessionCount / progress.totalCount) * 100, 100)
+    : 0;
+  
+  // Calculate accuracy based on completed questions
   const accuracy = completedCount > 0 ? (correctCount / completedCount) * 100 : 0;
+  
+  // Calculate total questions based on all attempts
+  const effectiveTotalQuestions = questionCount * (totalAttempts > 0 ? totalAttempts : 1);
+  
   const buttonText = isStarted ? 'Continue Training' : 'Start Training';
 
   return (
@@ -42,15 +60,15 @@ export function CategoryCard({
         <div>
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Progress</span>
-            <span>{Math.round(progress)}%</span>
+            <span>{Math.round(sessionProgress)}%</span>
           </div>
           <div className="h-2 bg-gray-100 rounded-full">
             <div 
               className={cn(
                 "h-full rounded-full transition-all duration-300",
-                progress === 100 ? "bg-green-500" : "bg-blue-500"
+                sessionProgress === 100 ? "bg-green-500" : "bg-blue-500"
               )}
-              style={{ width: `${progress}%` }}
+              style={{ width: `${sessionProgress}%` }}
             />
           </div>
         </div>
@@ -75,7 +93,12 @@ export function CategoryCard({
         )}
 
         <div className="text-sm text-gray-600">
-          {correctCount} of {questionCount} completed correctly
+          <div>Completed {correctCount} of {effectiveTotalQuestions} correctly</div>
+          {totalAttempts > 0 && (
+            <div className="text-gray-500">
+              Total attempts: {totalAttempts}
+            </div>
+          )}
         </div>
       </div>
 

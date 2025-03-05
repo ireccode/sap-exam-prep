@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { questionBank } from '@/services/questionBank';
 import { CategoryCard } from './CategoryCard';
 import { CategoryHeader } from './CategoryHeader';
@@ -7,6 +7,7 @@ import { Question } from '@/types/question';
 import { QuestionCard } from '../exam/QuestionCard';
 import { useTrainingStore } from '@/store/useTrainingStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { Transition } from '@headlessui/react';
 
 const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number | number[], requiredAnswers: number = 1) => {
   // Convert single number to array if needed
@@ -44,6 +45,7 @@ const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number 
 
 export function TrainingDeck() {
   const [categories, setCategories] = React.useState<Array<{ name: string; count: number; hasPremium: boolean }>>([]);
+  const [sessionScore, setSessionScore] = useState<number | null>(null);
   const { 
     selectedCategory,
     questions,
@@ -59,8 +61,13 @@ export function TrainingDeck() {
     setPreviousPath
   } = useTrainingStore();
   
-  const { getCategoryProgress, updateProgress } = useProgressStore();
+  const { getCategoryProgress, updateProgress, startNewTrainingSession } = useProgressStore();
   const { isPremium } = useAuth();
+
+  useEffect(() => {
+    setSessionScore(null);
+    setIsSubmitted(false);
+  }, [selectedCategory, setIsSubmitted]);
 
   useEffect(() => {
     const initializeCategories = async () => {
@@ -131,7 +138,11 @@ export function TrainingDeck() {
       .sort(() => Math.random() - 0.5)
       .slice(0, Math.min(10, processedQuestions.length));
     
-    // Initialize the training session
+    // Start new training session with question count
+    startNewTrainingSession(category, shuffledQuestions.length);
+    
+    // Reset session state
+    setSessionScore(null);
     setQuestions(shuffledQuestions);
     setSelectedCategory(category);
     setCurrentQuestionIndex(0);
@@ -172,10 +183,8 @@ export function TrainingDeck() {
       }))
     });
     
-    // Calculate correct answers for this session
     let sessionCorrectCount = 0;
     
-    // Update progress for answered questions
     questions.forEach(question => {
       const answer = selectedAnswers[question.id];
       const selectedAnswerArray = answer
@@ -195,34 +204,28 @@ export function TrainingDeck() {
         isArray: Array.isArray(answer)
       });
       
-      // Check if all answers are correct using the helper function
       const isCorrect = areAllAnswersCorrect(selectedAnswerArray, correctAnswers, requiredAnswers);
-      
-      console.log('TrainingDeck - Question Result:', {
-        questionId: question.id,
-        isCorrect,
-        sessionCorrectCount
-      });
       
       if (isCorrect) {
         sessionCorrectCount++;
       }
       
-      // Update progress in the store
       updateProgress(selectedCategory!, question.id, isCorrect);
     });
 
+    const score = Math.round((sessionCorrectCount / questions.length) * 100);
+    setSessionScore(score);
+
     console.log('TrainingDeck - Submit Complete:', {
       sessionCorrectCount,
-      totalQuestions: questions.length
+      totalQuestions: questions.length,
+      score
     });
-
-    // Force a re-render to update the progress display
-    setCategories(prevCategories => [...prevCategories]);
   };
 
   const handleReturn = () => {
     resetTraining();
+    setSessionScore(null);
   };
 
   if (selectedCategory && questions.length > 0) {
@@ -243,9 +246,19 @@ export function TrainingDeck() {
             <div className="text-lg font-semibold">
               Question {currentQuestionIndex + 1} of {questions.length}
             </div>
-            <div className="text-gray-600">
-              Progress: {progress.correctCount} / {questions.length} correct
-            </div>
+            <Transition
+              show={isSubmitted}
+              enter="transition-opacity duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity duration-300"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="text-lg font-semibold text-blue-600">
+                Score: {sessionScore !== null ? `${sessionScore}%` : 'Calculating...'}
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -293,6 +306,9 @@ export function TrainingDeck() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map(({ name, count, hasPremium }) => {
           const progress = getCategoryProgress(name);
+          // Calculate total questions based on all attempts
+          const totalQuestions = count * (progress.totalAttempts > 0 ? progress.totalAttempts : 1);
+          
           return (
             <CategoryCard
               key={name}
@@ -300,6 +316,9 @@ export function TrainingDeck() {
               questionCount={count}
               completedCount={progress.completedCount}
               correctCount={progress.correctCount}
+              totalQuestions={totalQuestions}
+              totalAttempts={progress.totalAttempts}
+              currentSessionCount={progress.currentSessionCount}
               isStarted={progress.completedCount > 0}
               hasPremium={hasPremium}
               onClick={() => handleStartTraining(name)}

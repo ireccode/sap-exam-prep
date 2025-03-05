@@ -3,7 +3,7 @@ import { Question } from '../../types/question';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '@/store/useExamStore';
-import { Crown } from 'lucide-react';
+import { Crown, Check, X } from 'lucide-react';
 
 interface QuestionCardProps {
   question: Question;
@@ -17,12 +17,32 @@ const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number 
   // Convert single number to array if needed
   const correctAnswerArray = Array.isArray(correctAnswers) ? correctAnswers : [correctAnswers];
 
+  console.log('QuestionCard - Answer Check:', {
+    selectedAnswers,
+    correctAnswerArray,
+    requiredAnswers: correctAnswerArray.length,
+    selectedLength: selectedAnswers.length,
+    correctLength: correctAnswerArray.length,
+  });
+
+  // For single answer questions
+  if (correctAnswerArray.length === 1) {
+    return selectedAnswers.length === 1 && correctAnswerArray.includes(selectedAnswers[0]);
+  }
+
+  // For multiple answer questions:
   // 1. Check if we have the right number of answers
   // 2. Check if all selected answers are in correctAnswers (order independent)
   // 3. Check if all correct answers are selected (order independent)
   const hasCorrectCount = selectedAnswers.length === correctAnswerArray.length;
   const allSelectedAreCorrect = selectedAnswers.every(answer => correctAnswerArray.includes(answer));
   const allCorrectAreSelected = correctAnswerArray.every(answer => selectedAnswers.includes(answer));
+
+  console.log('Multiple Answer Check:', {
+    hasCorrectCount,
+    allSelectedAreCorrect,
+    allCorrectAreSelected
+  });
 
   return hasCorrectCount && allSelectedAreCorrect && allCorrectAreSelected;
 };
@@ -105,6 +125,15 @@ export function QuestionCard({
             >
               <div className="flex justify-between items-center">
                 <span>{option}</span>
+                {isSubmitted && (
+                  <div className="flex items-center">
+                    {isCorrect ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : isSelected ? (
+                      <X className="w-5 h-5 text-red-600" />
+                    ) : null}
+                  </div>
+                )}
                 {isSelected && !isSubmitted && (
                   <span className="text-sm text-gray-500">Click to deselect</span>
                 )}
