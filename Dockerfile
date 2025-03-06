@@ -34,9 +34,6 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Ensure _redirects file is in the dist directory
-RUN cp public/_redirects dist/
-
 # Production stage
 FROM nginx:alpine
 

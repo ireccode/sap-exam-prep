@@ -4,10 +4,26 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'copy-redirects',
+      generateBundle() {
+        // Copy _redirects file to dist
+        if (fs.existsSync('public/_redirects')) {
+          this.emitFile({
+            type: 'asset',
+            fileName: '_redirects',
+            source: fs.readFileSync('public/_redirects', 'utf-8')
+          });
+        }
+      }
+    }
+  ],
   envPrefix: 'VITE_',
   server: {
     proxy: {
@@ -36,8 +52,7 @@ export default defineConfig({
           if (info.endsWith('.encrypted') || 
               info.endsWith('.template') ||
               info.endsWith('.jpg') ||
-              info.endsWith('.png') ||
-              info === '_redirects') {
+              info.endsWith('.png')) {
             return '[name][extname]';
           }
           return 'assets/[name]-[hash][extname]';
