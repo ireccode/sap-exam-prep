@@ -19,9 +19,7 @@ const copyPublicFiles = (): Plugin => ({
       console.log('Files to be copied:', files);
       
       const distDir = path.resolve(process.cwd(), 'dist');
-      const staticDir = path.join(distDir, 'static');
-      
-      fs.mkdirSync(staticDir, { recursive: true });
+      fs.mkdirSync(distDir, { recursive: true });
       
       for (const file of files) {
         if (file === '.DS_Store') continue;
@@ -30,13 +28,10 @@ const copyPublicFiles = (): Plugin => ({
         const stats = fs.statSync(filePath);
         
         if (stats.isFile()) {
-          const isStaticFile = file.match(/\.(encrypted|template|jpg|png|json)$/);
-          const destination = isStaticFile ? `static/${file}` : file;
-          
           const content = fs.readFileSync(filePath);
           this.emitFile({
             type: 'asset',
-            fileName: destination,
+            fileName: file,
             source: content
           });
         }
@@ -78,7 +73,7 @@ export default defineConfig({
               info.endsWith('.jpg') ||
               info.endsWith('.png') ||
               info.endsWith('.json')) {
-            return `static/[name][extname]`;
+            return `[name][extname]`;
           }
           return 'assets/[name]-[hash][extname]';
         },

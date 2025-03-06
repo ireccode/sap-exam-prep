@@ -31,15 +31,14 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Debug: Show static files after build
-RUN echo "Static files after build:" && \
-    find dist/static -type f || echo "No static files found"
+# Debug: Show copied files after build
+RUN echo "Public files after build:" && \
+    find dist -type f -name "*.encrypted" -o -name "*.template" -o -name "*.jpg" -o -name "*.png" -o -name "*.json"
 
 # Production stage
 FROM nginx:alpine
 
-# Create directory and copy files
-RUN mkdir -p /usr/share/nginx/html/static
+# Copy files
 COPY --from=build /app/dist/ /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
