@@ -28,17 +28,36 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code and public files
+# First, explicitly copy the public directory
+COPY public ./public/
+
+# Verify public directory contents
+RUN echo "Verifying public directory:" && \
+    ls -la public/ && \
+    echo "Public directory contents:" && \
+    find public -type f
+
+# Then copy the rest of the source code
 COPY . .
 
 # Create necessary directories
 RUN mkdir -p dist/static
 
+# Verify directory structure before build
+RUN echo "Pre-build directory structure:" && \
+    pwd && \
+    ls -la && \
+    echo "\nPublic directory:" && \
+    ls -la public/ || echo "public/ not found" && \
+    echo "\nVerifying public files:" && \
+    find public -type f || echo "No files found in public/"
+
 # Build the application
 RUN npm run build
 
 # Debug: List contents of dist directory and public directory
-RUN echo "Contents of public directory:" && \
+RUN echo "Post-build directory structure:" && \
+    echo "Contents of public directory:" && \
     ls -la public/ && \
     echo "\nContents of dist:" && \
     ls -la dist/ && \
