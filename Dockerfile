@@ -39,9 +39,12 @@ FROM nginx:alpine
 
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html/
-COPY --from=build /app/dist/env-config.js.template /usr/share/nginx/html/
-COPY --from=build /app/public /usr/share/nginx/html/
-#COPY --from=build /app/public/env-config.js.template /usr/share/nginx/html/
+COPY --from=build /app/dist/env-config.js.template /usr/share/nginx/html/env-config.js.template
+COPY --from=build /app/dist/btp_query_bank.encrypted /usr/share/nginx/html/
+COPY --from=build /app/dist/premium_btp_query_bank.encrypted /usr/share/nginx/html/
+COPY --from=build /app/dist/logo.png /usr/share/nginx/html/
+COPY --from=build /app/dist/sap_architect_logo01.jpg /usr/share/nginx/html/
+COPY --from=build /app/dist/_redirects /usr/share/nginx/html/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
