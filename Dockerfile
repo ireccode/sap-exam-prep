@@ -31,20 +31,26 @@ RUN npm install
 # Copy source code and public files
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p dist/static
-
 # Build the application
 RUN npm run build
 
-# List contents of dist directory for debugging
-RUN ls -la dist/ && ls -la dist/static/ || true
+# Debug: List contents of dist directory
+RUN echo "Contents of dist:" && \
+    ls -la dist/ && \
+    echo "Contents of dist/static (if exists):" && \
+    ls -la dist/static/ || echo "static directory not found"
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built assets from build stage
 COPY --from=build /app/dist/ /usr/share/nginx/html/
+
+# Debug: List contents after copy
+RUN echo "Contents of /usr/share/nginx/html:" && \
+    ls -la /usr/share/nginx/html/ && \
+    echo "Contents of /usr/share/nginx/html/static (if exists):" && \
+    ls -la /usr/share/nginx/html/static/ || echo "static directory not found"
 
 # Ensure static directory exists
 RUN mkdir -p /usr/share/nginx/html/static

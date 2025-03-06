@@ -5,24 +5,43 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
+import type { Plugin } from 'vite';
+
+// Custom plugin to copy public files
+const copyPublicFiles = (): Plugin => ({
+  name: 'copy-public-files',
+  enforce: 'post',
+  generateBundle() {
+    const publicDir = path.resolve(__dirname, 'public');
+    if (fs.existsSync(publicDir)) {
+      const files = fs.readdirSync(publicDir);
+      files.forEach(file => {
+        if (file === '.DS_Store') return;
+        
+        const filePath = path.join(publicDir, file);
+        const stats = fs.statSync(filePath);
+        
+        if (stats.isFile()) {
+          const destination = file.match(/\.(encrypted|template|jpg|png|json)$/)
+            ? `static/${file}`
+            : file;
+            
+          this.emitFile({
+            type: 'asset',
+            fileName: destination,
+            source: fs.readFileSync(filePath)
+          });
+        }
+      });
+    }
+  }
+});
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    {
-      name: 'copy-redirects',
-      generateBundle() {
-        // Copy _redirects file to dist
-        if (fs.existsSync('public/_redirects')) {
-          this.emitFile({
-            type: 'asset',
-            fileName: '_redirects',
-            source: fs.readFileSync('public/_redirects', 'utf-8')
-          });
-        }
-      }
-    }
+    copyPublicFiles()
   ],
   envPrefix: 'VITE_',
   server: {
@@ -63,7 +82,7 @@ export default defineConfig({
       },
     },
     // Copy static files
-    copyPublicDir: true,
+    copyPublicDir: false, // We handle this with our custom plugin
     // Ensure all files from public are copied
     outDir: 'dist',
   },
