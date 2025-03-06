@@ -11,10 +11,25 @@ import type { Plugin } from 'vite';
 const copyPublicFiles = (): Plugin => ({
   name: 'copy-public-files',
   enforce: 'post',
-  generateBundle() {
+  async generateBundle() {
     const publicDir = path.resolve(__dirname, 'public');
+    console.log('Public directory:', publicDir);
+    
     if (fs.existsSync(publicDir)) {
       const files = fs.readdirSync(publicDir);
+      console.log('Files in public directory:', files);
+      
+      // Create static directory in dist
+      const distDir = path.resolve(__dirname, 'dist');
+      const staticDir = path.join(distDir, 'static');
+      
+      if (!fs.existsSync(distDir)) {
+        fs.mkdirSync(distDir, { recursive: true });
+      }
+      if (!fs.existsSync(staticDir)) {
+        fs.mkdirSync(staticDir, { recursive: true });
+      }
+      
       files.forEach(file => {
         if (file === '.DS_Store') return;
         
@@ -22,17 +37,35 @@ const copyPublicFiles = (): Plugin => ({
         const stats = fs.statSync(filePath);
         
         if (stats.isFile()) {
-          const destination = file.match(/\.(encrypted|template|jpg|png|json)$/)
-            ? `static/${file}`
-            : file;
+          const isStaticFile = file.match(/\.(encrypted|template|jpg|png|json)$/);
+          const destination = isStaticFile ? `static/${file}` : file;
+          
+          console.log(`Copying ${file} to ${destination}`);
+          
+          try {
+            const content = fs.readFileSync(filePath);
+            this.emitFile({
+              type: 'asset',
+              fileName: destination,
+              source: content
+            });
             
-          this.emitFile({
-            type: 'asset',
-            fileName: destination,
-            source: fs.readFileSync(filePath)
-          });
+            // Also copy directly to ensure files are there
+            const destPath = path.join(distDir, destination);
+            const destDir = path.dirname(destPath);
+            if (!fs.existsSync(destDir)) {
+              fs.mkdirSync(destDir, { recursive: true });
+            }
+            fs.writeFileSync(destPath, content);
+            
+            console.log(`Successfully copied ${file} to ${destination}`);
+          } catch (error) {
+            console.error(`Error copying ${file}:`, error);
+          }
         }
       });
+    } else {
+      console.error('Public directory not found:', publicDir);
     }
   }
 });

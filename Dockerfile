@@ -31,17 +31,27 @@ RUN npm install
 # Copy source code and public files
 COPY . .
 
+# Create necessary directories
+RUN mkdir -p dist/static
+
 # Build the application
 RUN npm run build
 
-# Debug: List contents of dist directory
-RUN echo "Contents of dist:" && \
+# Debug: List contents of dist directory and public directory
+RUN echo "Contents of public directory:" && \
+    ls -la public/ && \
+    echo "\nContents of dist:" && \
     ls -la dist/ && \
-    echo "Contents of dist/static (if exists):" && \
-    ls -la dist/static/ || echo "static directory not found"
+    echo "\nContents of dist/static (if exists):" && \
+    ls -la dist/static/ || echo "static directory not found" && \
+    echo "\nFull directory structure:" && \
+    find dist -type f
 
 # Production stage
 FROM nginx:alpine
+
+# Create necessary directories
+RUN mkdir -p /usr/share/nginx/html/static
 
 # Copy built assets from build stage
 COPY --from=build /app/dist/ /usr/share/nginx/html/
@@ -49,11 +59,10 @@ COPY --from=build /app/dist/ /usr/share/nginx/html/
 # Debug: List contents after copy
 RUN echo "Contents of /usr/share/nginx/html:" && \
     ls -la /usr/share/nginx/html/ && \
-    echo "Contents of /usr/share/nginx/html/static (if exists):" && \
-    ls -la /usr/share/nginx/html/static/ || echo "static directory not found"
-
-# Ensure static directory exists
-RUN mkdir -p /usr/share/nginx/html/static
+    echo "\nContents of /usr/share/nginx/html/static (if exists):" && \
+    ls -la /usr/share/nginx/html/static/ || echo "static directory not found" && \
+    echo "\nFull nginx directory structure:" && \
+    find /usr/share/nginx/html -type f
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
