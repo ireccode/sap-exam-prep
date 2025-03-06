@@ -36,7 +36,8 @@ export default defineConfig({
           if (info.endsWith('.encrypted') || 
               info.endsWith('.template') ||
               info.endsWith('.jpg') ||
-              info.endsWith('.png')) {
+              info.endsWith('.png') ||
+              info === '_redirects') {
             return '[name][extname]';
           }
           return 'assets/[name]-[hash][extname]';
