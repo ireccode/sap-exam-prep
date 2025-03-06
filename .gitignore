@@ -21,7 +21,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # External input files
-public/*
+#public/*
 .mytemp/*
 
 # Editor directories and files
