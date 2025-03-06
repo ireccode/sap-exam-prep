@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+      - VIRTUAL_HOST=examprep.techtreasuretrove.in
+      - VIRTUAL_PROTO=https
+      - LETSENCRYPT_HOST=examprep.techtreasuretrove.in
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+      - VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
+      - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
+      - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
+      - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
+      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
+    volumes:
+      - logs:/var/log/nginx
+      - data:/app/data
+      - public:/app/public
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+    networks:
+      - app-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+      update_config:
+        parallelism: 1
+        order: stop-first
+
+networks:
+  app-network:
+    driver: overlay
+
+volumes:
+  logs:
+  data:
+  public:
