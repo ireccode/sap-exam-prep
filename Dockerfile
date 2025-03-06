@@ -31,17 +31,23 @@ RUN npm install
 # Copy source code and public files
 COPY . .
 
+# Create necessary directories
+RUN mkdir -p dist/static
+
 # Build the application
 RUN npm run build
 
 # List contents of dist directory for debugging
-RUN ls -la dist/
+RUN ls -la dist/ && ls -la dist/static/ || true
 
 # Production stage
 FROM nginx:alpine
 
-# Copy built assets from build stage (all at once)
+# Copy built assets from build stage
 COPY --from=build /app/dist/ /usr/share/nginx/html/
+
+# Ensure static directory exists
+RUN mkdir -p /usr/share/nginx/html/static
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

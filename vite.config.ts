@@ -52,8 +52,9 @@ export default defineConfig({
           if (info.endsWith('.encrypted') || 
               info.endsWith('.template') ||
               info.endsWith('.jpg') ||
-              info.endsWith('.png')) {
-            return '[name][extname]';
+              info.endsWith('.png') ||
+              info.endsWith('.json')) {
+            return `static/[name][extname]`;
           }
           return 'assets/[name]-[hash][extname]';
         },
@@ -63,6 +64,8 @@ export default defineConfig({
     },
     // Copy static files
     copyPublicDir: true,
+    // Ensure all files from public are copied
+    outDir: 'dist',
   },
   optimizeDeps: {
     include: [
