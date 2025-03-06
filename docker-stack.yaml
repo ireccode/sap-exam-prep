@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
+    image: docker.io/library/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
     ports:
       - "80:80"
       - "443:443"
