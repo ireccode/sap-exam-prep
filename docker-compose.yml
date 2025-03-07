@@ -36,7 +36,7 @@ services:
       - ./logs:/var/log/nginx
       - ./data:/app/data
       - ./dist:/app/public
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt
       - /var/lib/letsencrypt:/var/lib/letsencrypt
     networks:
       - app-network
