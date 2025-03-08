@@ -15,9 +15,9 @@ services:
         - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
         - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     container_name: sap-exam-prep-app
+    image: docker.io/library/sap-exam-prep:${GIT_COMMIT_HASH:-latest}    
     ports:
-      - "80:80"
-      - "443:443"
+      - "5173:5173"
     environment:
       - NODE_ENV=production
       - VIRTUAL_HOST=examprep.techtreasuretrove.in
@@ -40,6 +40,19 @@ services:
       - /var/lib/letsencrypt:/var/lib/letsencrypt
     networks:
       - app-network
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - app_network
 
 networks:
   app-network:

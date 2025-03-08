@@ -4,8 +4,7 @@ services:
   app:
     image: docker.io/library/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
     ports:
-      - "80:80"
-      - "443:443"
+      - "5173:5173"
     environment:
       - NODE_ENV=production
       - VIRTUAL_HOST=examprep.techtreasuretrove.in
@@ -34,6 +33,20 @@ services:
       update_config:
         parallelism: 1
         order: stop-first
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - app_network
 
 networks:
   app-network:
