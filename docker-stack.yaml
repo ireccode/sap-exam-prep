@@ -2,22 +2,49 @@ version: '3.8'
 
 services:
   app:
-    image: docker.io/library/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
+    image: sap-exam-prep:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        parallelism: 1
+        order: start-first
     ports:
-      - "5173:5173"
+      - target: 5173
+        published: 5173
+        protocol: tcp
+        mode: host
+    secrets:
+      - source: VITE_SUPABASE_URL
+        target: VITE_SUPABASE_URL
+      - source: VITE_SUPABASE_ANON_KEY
+        target: VITE_SUPABASE_ANON_KEY
+      - source: VITE_STRIPE_PUBLISHABLE_KEY
+        target: VITE_STRIPE_PUBLISHABLE_KEY
+      - source: VITE_STRIPE_PREMIUM_PRICE_ID
+        target: VITE_STRIPE_PREMIUM_PRICE_ID
+      - source: VITE_BASIC_ENCRYPTION_KEY
+        target: VITE_BASIC_ENCRYPTION_KEY
+      - source: VITE_PREMIUM_ENCRYPTION_KEY
+        target: VITE_PREMIUM_ENCRYPTION_KEY
+      - source: VITE_WEBHOOK_SECRET
+        target: VITE_WEBHOOK_SECRET
+      - source: VITE_OPENROUTER_API_KEY
+        target: VITE_OPENROUTER_API_KEY
     environment:
       - NODE_ENV=production
       - VIRTUAL_HOST=examprep.techtreasuretrove.in
       - VIRTUAL_PROTO=https
       - LETSENCRYPT_HOST=examprep.techtreasuretrove.in
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
-      - VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
-      - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
-      - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
-      - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
-      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
+      - VITE_SUPABASE_URL_FILE=/run/secrets/VITE_SUPABASE_URL
+      - VITE_SUPABASE_ANON_KEY_FILE=/run/secrets/VITE_SUPABASE_ANON_KEY
+      - VITE_STRIPE_PUBLISHABLE_KEY_FILE=/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY
+      - VITE_STRIPE_PREMIUM_PRICE_ID_FILE=/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID
+      - VITE_BASIC_ENCRYPTION_KEY_FILE=/run/secrets/VITE_BASIC_ENCRYPTION_KEY
+      - VITE_PREMIUM_ENCRYPTION_KEY_FILE=/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY
+      - VITE_WEBHOOK_SECRET_FILE=/run/secrets/VITE_WEBHOOK_SECRET
+      - VITE_OPENROUTER_API_KEY_FILE=/run/secrets/VITE_OPENROUTER_API_KEY
     volumes:
       - logs:/var/log/nginx
       - data:/app/data
@@ -26,19 +53,18 @@ services:
       - /var/lib/letsencrypt:/var/lib/letsencrypt
     networks:
       - app-network
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: unless-stopped
-      update_config:
-        parallelism: 1
-        order: stop-first
 
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
@@ -46,7 +72,11 @@ services:
     depends_on:
       - app
     networks:
-      - app_network
+      - app-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
 
 networks:
   app-network:
@@ -56,3 +86,21 @@ volumes:
   logs:
   data:
   public:
+
+secrets:
+  VITE_SUPABASE_URL:
+    external: true
+  VITE_SUPABASE_ANON_KEY:
+    external: true
+  VITE_STRIPE_PUBLISHABLE_KEY:
+    external: true
+  VITE_STRIPE_PREMIUM_PRICE_ID:
+    external: true
+  VITE_BASIC_ENCRYPTION_KEY:
+    external: true
+  VITE_PREMIUM_ENCRYPTION_KEY:
+    external: true
+  VITE_WEBHOOK_SECRET:
+    external: true
+  VITE_OPENROUTER_API_KEY:
+    external: true
