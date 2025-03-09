@@ -3,29 +3,30 @@ FROM node:20-alpine as build
 
 WORKDIR /app
 
-# Define build arguments for sensitive values
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ARG VITE_STRIPE_PUBLISHABLE_KEY
-ARG VITE_STRIPE_PREMIUM_PRICE_ID
-ARG VITE_BASIC_ENCRYPTION_KEY
-ARG VITE_PREMIUM_ENCRYPTION_KEY
-ARG VITE_WEBHOOK_SECRET
-ARG VITE_OPENROUTER_API_KEY
-
 # Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Create .env file for build time with all necessary variables
-RUN echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}" >> .env && \
-    echo "VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}" >> .env && \
-    echo "VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}" >> .env && \
-    echo "VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}" >> .env && \
-    echo "VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}" >> .env && \
-    echo "VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}" >> .env && \
-    echo "VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}" >> .env
+
+# Access secrets securely during build
+RUN --mount=type=secret,id=VITE_SUPABASE_URL \
+    --mount=type=secret,id=VITE_SUPABASE_ANON_KEY \
+    --mount=type=secret,id=VITE_STRIPE_PUBLISHABLE_KEY \
+    --mount=type=secret,id=VITE_STRIPE_PREMIUM_PRICE_ID \
+    --mount=type=secret,id=VITE_BASIC_ENCRYPTION_KEY \
+    --mount=type=secret,id=VITE_PREMIUM_ENCRYPTION_KEY \
+    --mount=type=secret,id=VITE_WEBHOOK_SECRET \
+    --mount=type=secret,id=VITE_OPENROUTER_API_KEY \
+    echo "VITE_SUPABASE_URL: $(cat /run/secrets/VITE_SUPABASE_URL)" > .env && \
+    echo "VITE_SUPABASE_ANON_KEY: $(cat /run/secrets/VITE_SUPABASE_ANON_KEY)" >> .env && \
+    echo "VITE_STRIPE_PUBLISHABLE_KEY: $(cat /run/secrets/VITE_STRIPE_PUBLISHABLE_KEY)" >> .env && \
+    echo "VITE_STRIPE_PREMIUM_PRICE_ID: $(cat /run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID)" >> .env && \
+    echo "VITE_BASIC_ENCRYPTION_KEY: $(cat /run/secrets/VITE_BASIC_ENCRYPTION_KEY)" >> .env && \
+    echo "VITE_PREMIUM_ENCRYPTION_KEY: $(cat /run/secrets/VITE_PREMIUM_ENCRYPTION_KEY)" >> .env && \
+    echo "VITE_WEBHOOK_SECRET: $(cat /run/secrets/VITE_WEBHOOK_SECRET)" >> .env && \
+    echo "VITE_OPENROUTER_API_KEY: $(cat /run/secrets/VITE_OPENROUTER_API_KEY)" >> .env $$ \
+    echo "content of .env: $(cat .env)" 
+
 
 # Copy source code and build
 COPY . .
