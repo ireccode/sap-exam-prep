@@ -1,25 +1,16 @@
 #!/bin/bash
 
-# Read secrets from Docker secrets
-VITE_SUPABASE_URL=$(cat /run/secrets/VITE_SUPABASE_URL)
-VITE_SUPABASE_ANON_KEY=$(cat /run/secrets/VITE_SUPABASE_ANON_KEY)
-VITE_STRIPE_PUBLISHABLE_KEY=$(cat /run/secrets/VITE_STRIPE_PUBLISHABLE_KEY)
-VITE_STRIPE_PREMIUM_PRICE_ID=$(cat /run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID)
-VITE_BASIC_ENCRYPTION_KEY=$(cat /run/secrets/VITE_BASIC_ENCRYPTION_KEY)
-VITE_PREMIUM_ENCRYPTION_KEY=$(cat /run/secrets/VITE_PREMIUM_ENCRYPTION_KEY)
-VITE_WEBHOOK_SECRET=$(cat /run/secrets/VITE_WEBHOOK_SECRET)
-VITE_OPENROUTER_API_KEY=$(cat /run/secrets/VITE_OPENROUTER_API_KEY)
 
 # Build the Docker image with build arguments
 docker build \
-  --build-arg VITE_SUPABASE_URL="$VITE_SUPABASE_URL" \
-  --build-arg VITE_SUPABASE_ANON_KEY="$VITE_SUPABASE_ANON_KEY" \
-  --build-arg VITE_STRIPE_PUBLISHABLE_KEY="$VITE_STRIPE_PUBLISHABLE_KEY" \
-  --build-arg VITE_STRIPE_PREMIUM_PRICE_ID="$VITE_STRIPE_PREMIUM_PRICE_ID" \
-  --build-arg VITE_BASIC_ENCRYPTION_KEY="$VITE_BASIC_ENCRYPTION_KEY" \
-  --build-arg VITE_PREMIUM_ENCRYPTION_KEY="$VITE_PREMIUM_ENCRYPTION_KEY" \
-  --build-arg VITE_WEBHOOK_SECRET="$VITE_WEBHOOK_SECRET" \
-  --build-arg VITE_OPENROUTER_API_KEY="$VITE_OPENROUTER_API_KEY" \
+  --secret id=VITE_SUPABASE_URL,src=/Users/irec/.docker/run/secrets/VITE_SUPABASE_URL \
+  --secret id=VITE_SUPABASE_ANON_KEY,src=/Users/irec/.docker/run/secrets/VITE_SUPABASE_ANON_KEY \
+  --secret id=VITE_STRIPE_PUBLISHABLE_KEY,src=/Users/irec/.docker/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY \
+  --secret id=VITE_STRIPE_PREMIUM_PRICE_ID,src=/Users/irec/.docker/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID \
+  --secret id=VITE_BASIC_ENCRYPTION_KEY,src=/Users/irec/.docker/run/secrets/VITE_BASIC_ENCRYPTION_KEY \
+  --secret id=VITE_PREMIUM_ENCRYPTION_KEY,src=/Users/irec/.docker/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY \
+  --secret id=VITE_WEBHOOK_SECRET,src=/Users/irec/.docker/run/secrets/VITE_WEBHOOK_SECRET \
+  --secret id=VITE_OPENROUTER_API_KEY,src=/Users/irec/.docker/run/secrets/VITE_OPENROUTER_API_KEY \
   -t sap-exam-prep .
 
 # Deploy the stack

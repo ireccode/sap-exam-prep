@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: sap-exam-prep:latest
+    image:  ghcr.io/ireccode/sap-exam-prep:latest
     deploy:
       replicas: 1
       restart_policy:

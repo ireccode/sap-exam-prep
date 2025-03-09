@@ -33,7 +33,7 @@ RUN npm run build
 
 # Debug: Show copied files after build
 RUN echo "Public files after build:" && \
-    find dist -type f -name "*.encrypted" -o -name "*.template" -o -name "*.jpg" -o -name "*.png" -o -name "*.json"
+    find dist -type f -name "*.encrypted" -o -name "*.template" -o -name "*.jpg" -o -name "*.png" -o -name "*.json"  -o -name "*.js"  -o -name "*.css"
 
 # Production stage
 FROM node:20-alpine
@@ -43,6 +43,8 @@ WORKDIR /app
 # Copy only the built files from build stage
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/package*.json ./
+# Copy built assets from build stage (all at once)
+COPY --from=build /app/dist/ /usr/share/nginx/html/
 
 # Install only production dependencies
 RUN npm ci --production

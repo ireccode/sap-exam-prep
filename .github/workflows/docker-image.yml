@@ -43,5 +43,5 @@ jobs:
           --build-arg VITE_PREMIUM_ENCRYPTION_KEY=$VITE_PREMIUM_ENCRYPTION_KEY \
           --build-arg VITE_WEBHOOK_SECRET=$VITE_WEBHOOK_SECRET \
           --build-arg VITE_OPENROUTER_API_KEY=$VITE_OPENROUTER_API_KEY \
-          --tag sap-exam-prep:latest
+          --tag  ghcr.io/ireccode/sap-exam-prep:latest
                 
