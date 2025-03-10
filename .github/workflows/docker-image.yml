@@ -32,12 +32,12 @@ jobs:
 
       - name: Build and push by platform
         uses: docker/build-push-action@v6
-        with: .
+        with:
+          context: .        
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ghcr.io/ireccode/sap-exam-prep:latest
-            ghcr.io/ireccode/sap-exam-prep:${{ github.sha }}
+            ghcr.io/ireccode/sap-exam-prep:${{ matrix.platform }}
           build-args: |
             ITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
             VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
