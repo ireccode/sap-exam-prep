@@ -37,4 +37,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/ireccode/sap-exam-prep:latest
-            ghcr.io/ireccode/sap-exam-prep:${{ github.sha }}          
+            ghcr.io/ireccode/sap-exam-prep:${{ github.sha }}
+          build-args: |
+            $(cat .env | sed 's/^/--build-arg /')
