@@ -39,4 +39,11 @@ jobs:
             ghcr.io/ireccode/sap-exam-prep:latest
             ghcr.io/ireccode/sap-exam-prep:${{ github.sha }}
           build-args: |
-            $(cat .env | sed 's/^/--build-arg /')
+             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
+            VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
+            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
+            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}                                                                                    
