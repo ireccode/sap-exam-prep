@@ -1,7 +1,5 @@
 # Build stage
 FROM node:20-alpine as build
- 
-WORKDIR /app
 
 # Define build arguments for sensitive values
 ARG VITE_SUPABASE_URL
@@ -12,11 +10,6 @@ ARG VITE_BASIC_ENCRYPTION_KEY
 ARG VITE_PREMIUM_ENCRYPTION_KEY
 ARG VITE_WEBHOOK_SECRET
 ARG VITE_OPENROUTER_API_KEY
-
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
-
 # Create .env file for build time with all necessary variables
 RUN echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" > .env && \
     echo "VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}" >> .env && \
@@ -25,7 +18,12 @@ RUN echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" > .env && \
     echo "VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}" >> .env && \
     echo "VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}" >> .env && \
     echo "VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}" >> .env && \
-    echo "VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}" >> .env
+    echo "VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}" >> .env 
+
+WORKDIR /app    
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
 
 
 # Copy source code and build
@@ -44,6 +42,7 @@ WORKDIR /app
 # Copy only the built files from build stage
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/package*.json ./
+
 
 # Install only production dependencies
 RUN npm ci --production
