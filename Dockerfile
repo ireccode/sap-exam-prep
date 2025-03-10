@@ -17,14 +17,14 @@ RUN --mount=type=secret,id=VITE_SUPABASE_URL \
     --mount=type=secret,id=VITE_PREMIUM_ENCRYPTION_KEY \
     --mount=type=secret,id=VITE_WEBHOOK_SECRET \
     --mount=type=secret,id=VITE_OPENROUTER_API_KEY \
-    echo "VITE_SUPABASE_URL: $(cat  /Users/irec/.docker/run/secrets/VITE_SUPABASE_URL)" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY: $(cat  /Users/irec/.docker/run/secrets/VITE_SUPABASE_ANON_KEY)" >> .env && \
-    echo "VITE_STRIPE_PUBLISHABLE_KEY: $(cat  /Users/irec/.docker/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY)" >> .env && \
-    echo "VITE_STRIPE_PREMIUM_PRICE_ID: $(cat  /Users/irec/.docker/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID)" >> .env && \
-    echo "VITE_BASIC_ENCRYPTION_KEY: $(cat  /Users/irec/.docker/run/secrets/VITE_BASIC_ENCRYPTION_KEY)" >> .env && \
-    echo "VITE_PREMIUM_ENCRYPTION_KEY: $(cat  /Users/irec/.docker/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY)" >> .env && \
-    echo "VITE_WEBHOOK_SECRET: $(cat  /Users/irec/.docker/run/secrets/VITE_WEBHOOK_SECRET)" >> .env && \
-    echo "VITE_OPENROUTER_API_KEY: $(cat  /Users/irec/.docker/run/secrets/VITE_OPENROUTER_API_KEY)" >> .env $$ \
+    echo "VITE_SUPABASE_URL: $(cat /run/secrets/VITE_SUPABASE_URL)" > .env && \
+    echo "VITE_SUPABASE_ANON_KEY: $(cat /run/secrets/VITE_SUPABASE_ANON_KEY)" >> .env && \
+    echo "VITE_STRIPE_PUBLISHABLE_KEY: $(cat /run/secrets/VITE_STRIPE_PUBLISHABLE_KEY)" >> .env && \
+    echo "VITE_STRIPE_PREMIUM_PRICE_ID: $(cat /run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID)" >> .env && \
+    echo "VITE_BASIC_ENCRYPTION_KEY: $(cat  /run/secrets/VITE_BASIC_ENCRYPTION_KEY)" >> .env && \
+    echo "VITE_PREMIUM_ENCRYPTION_KEY: $(cat /run/secrets/VITE_PREMIUM_ENCRYPTION_KEY)" >> .env && \
+    echo "VITE_WEBHOOK_SECRET: $(cat  /run/secrets/VITE_WEBHOOK_SECRET)" >> .env && \
+    echo "VITE_OPENROUTER_API_KEY: $(cat /run/secrets/VITE_OPENROUTER_API_KEY)" >> .env $$ \
     echo "content of .env: $(cat .env)" 
 
 
