@@ -11,7 +11,8 @@ docker build \
   --secret id=VITE_PREMIUM_ENCRYPTION_KEY,src=/Users/irec/.docker/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY \
   --secret id=VITE_WEBHOOK_SECRET,src=/Users/irec/.docker/run/secrets/VITE_WEBHOOK_SECRET \
   --secret id=VITE_OPENROUTER_API_KEY,src=/Users/irec/.docker/run/secrets/VITE_OPENROUTER_API_KEY \
-  -t ghcr.io/ireccode/sap-exam-prep:latest .
+  -t ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH} \
+  -t ghcr.io/ireccode/sap-exam-prep:latest  .
 
 # Deploy the stack
-docker stack deploy -c docker-stack.yaml sap-exam 
+#docker stack deploy --with-registry-auth --resolve-image=always -c docker-stack.yaml sap-exam 

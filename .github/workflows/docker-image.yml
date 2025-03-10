@@ -24,24 +24,17 @@ jobs:
       run: npm install
       
     - name: Build the Docker image
-      env:
-        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-        VITE_STRIPE_PREMIUM_PRICE_ID: ${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-        VITE_BASIC_ENCRYPTION_KEY: ${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
-        VITE_PREMIUM_ENCRYPTION_KEY: ${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
-        VITE_WEBHOOK_SECRET: ${{ secrets.VITE_WEBHOOK_SECRET }}
-        VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
       run: |
-        docker build . --file Dockerfile \
-          --build-arg VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
-          --build-arg VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY \
-          --build-arg VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY \
-          --build-arg VITE_STRIPE_PREMIUM_PRICE_ID=$VITE_STRIPE_PREMIUM_PRICE_ID \
-          --build-arg VITE_BASIC_ENCRYPTION_KEY=$VITE_BASIC_ENCRYPTION_KEY \
-          --build-arg VITE_PREMIUM_ENCRYPTION_KEY=$VITE_PREMIUM_ENCRYPTION_KEY \
-          --build-arg VITE_WEBHOOK_SECRET=$VITE_WEBHOOK_SECRET \
-          --build-arg VITE_OPENROUTER_API_KEY=$VITE_OPENROUTER_API_KEY \
-          --tag  ghcr.io/ireccode/sap-exam-prep:latest
+      docker build \
+        --secret id=VITE_SUPABASE_URL,src=/run/secrets/VITE_SUPABASE_URL \
+        --secret id=VITE_SUPABASE_ANON_KEY,src=/run/secrets/VITE_SUPABASE_ANON_KEY \
+        --secret id=VITE_STRIPE_PUBLISHABLE_KEY,src=/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY \
+        --secret id=VITE_STRIPE_PREMIUM_PRICE_ID,src=/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID \
+        --secret id=VITE_BASIC_ENCRYPTION_KEY,src=/run/secrets/VITE_BASIC_ENCRYPTION_KEY \
+        --secret id=VITE_PREMIUM_ENCRYPTION_KEY,src=/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY \
+        --secret id=VITE_WEBHOOK_SECRET,src=/run/secrets/VITE_WEBHOOK_SECRET \
+        --secret id=VITE_OPENROUTER_API_KEY,src=/run/secrets/VITE_OPENROUTER_API_KEY \
+        -t ghcr.io/ireccode/sap-exam-prep:${{ github.sha }} \
+        -t ghcr.io/ireccode/sap-exam-prep:latest .
+
                 
