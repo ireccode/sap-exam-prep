@@ -25,16 +25,6 @@ jobs:
       
     - name: Build the Docker image
       run: |
-      docker build \
-        --secret id=VITE_SUPABASE_URL,src=/run/secrets/VITE_SUPABASE_URL \
-        --secret id=VITE_SUPABASE_ANON_KEY,src=/run/secrets/VITE_SUPABASE_ANON_KEY \
-        --secret id=VITE_STRIPE_PUBLISHABLE_KEY,src=/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY \
-        --secret id=VITE_STRIPE_PREMIUM_PRICE_ID,src=/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID \
-        --secret id=VITE_BASIC_ENCRYPTION_KEY,src=/run/secrets/VITE_BASIC_ENCRYPTION_KEY \
-        --secret id=VITE_PREMIUM_ENCRYPTION_KEY,src=/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY \
-        --secret id=VITE_WEBHOOK_SECRET,src=/run/secrets/VITE_WEBHOOK_SECRET \
-        --secret id=VITE_OPENROUTER_API_KEY,src=/run/secrets/VITE_OPENROUTER_API_KEY \
+      docker build . --file Dockerfile \
         -t ghcr.io/ireccode/sap-exam-prep:${{ github.sha }} \
-        -t ghcr.io/ireccode/sap-exam-prep:latest .
-
-                
+        -t ghcr.io/ireccode/sap-exam-prep:latest
