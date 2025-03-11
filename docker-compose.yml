@@ -5,41 +5,35 @@ services:
     build:
       context: .
       target: app
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+        - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+        - VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
+        - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
+        - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
+        - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
+        - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     image: ghcr.io/ireccode/sap-exam-prep:latest
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
+    ports:
+      - "5173:5173"
     expose:
       - 5173
     environment:
       - NODE_ENV=production
       - VIRTUAL_PROTO=https
-      - VITE_SUPABASE_URL_FILE=/run/secrets/VITE_SUPABASE_URL
-      - VITE_SUPABASE_ANON_KEY_FILE=/run/secrets/VITE_SUPABASE_ANON_KEY
-      - VITE_STRIPE_PUBLISHABLE_KEY_FILE=/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY
-      - VITE_STRIPE_PREMIUM_PRICE_ID_FILE=/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID
-      - VITE_BASIC_ENCRYPTION_KEY_FILE=/run/secrets/VITE_BASIC_ENCRYPTION_KEY
-      - VITE_PREMIUM_ENCRYPTION_KEY_FILE=/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY
-      - VITE_WEBHOOK_SECRET_FILE=/run/secrets/VITE_WEBHOOK_SECRET
-      - VITE_OPENROUTER_API_KEY_FILE=/run/secrets/VITE_OPENROUTER_API_KEY
-    secrets:
-      - source: VITE_SUPABASE_URL
-        target: VITE_SUPABASE_URL
-      - source: VITE_SUPABASE_ANON_KEY
-        target: VITE_SUPABASE_ANON_KEY
-      - source: VITE_STRIPE_PUBLISHABLE_KEY
-        target: VITE_STRIPE_PUBLISHABLE_KEY
-      - source: VITE_STRIPE_PREMIUM_PRICE_ID
-        target: VITE_STRIPE_PREMIUM_PRICE_ID
-      - source: VITE_BASIC_ENCRYPTION_KEY
-        target: VITE_BASIC_ENCRYPTION_KEY
-      - source: VITE_PREMIUM_ENCRYPTION_KEY
-        target: VITE_PREMIUM_ENCRYPTION_KEY
-      - source: VITE_WEBHOOK_SECRET
-        target: VITE_WEBHOOK_SECRET
-      - source: VITE_OPENROUTER_API_KEY
-        target: VITE_OPENROUTER_API_KEY
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+      - VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
+      - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
+      - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
+      - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
+      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     volumes:
       - logs:/var/log/nginx
       - data:/app/data
@@ -93,27 +87,10 @@ services:
 
 networks:
   app-network:
-    driver: overlay
+    driver: bridge
+    attachable: true
 
 volumes:
   logs:
   data:
   public:
-
-secrets:
-  VITE_SUPABASE_URL:
-    file: ./secrets/VITE_SUPABASE_URL.txt
-  VITE_SUPABASE_ANON_KEY:
-    file: ./secrets/VITE_SUPABASE_ANON_KEY.txt
-  VITE_STRIPE_PUBLISHABLE_KEY:
-    file: ./secrets/VITE_STRIPE_PUBLISHABLE_KEY.txt
-  VITE_STRIPE_PREMIUM_PRICE_ID:
-    file: ./secrets/VITE_STRIPE_PREMIUM_PRICE_ID.txt
-  VITE_BASIC_ENCRYPTION_KEY:
-    file: ./secrets/VITE_BASIC_ENCRYPTION_KEY.txt
-  VITE_PREMIUM_ENCRYPTION_KEY:
-    file: ./secrets/VITE_PREMIUM_ENCRYPTION_KEY.txt
-  VITE_WEBHOOK_SECRET:
-    file: ./secrets/VITE_WEBHOOK_SECRET.txt
-  VITE_OPENROUTER_API_KEY:
-    file: ./secrets/VITE_OPENROUTER_API_KEY.txt

@@ -197,7 +197,7 @@ For support, please contact ireknie00@gmail.com
 
 ### 🚀 Quick Start with Docker
 1. Clone the repository
-2. Create a `.env` file with required environment variables:
+2. Create a `.env.production` file with required environment variables:
    ```env
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -206,7 +206,9 @@ For support, please contact ireknie00@gmail.com
    VITE_BASIC_ENCRYPTION_KEY=your_basic_key
    VITE_PREMIUM_ENCRYPTION_KEY=your_premium_key
    VITE_WEBHOOK_SECRET=your_webhook_secret
+   VITE_OPENROUTER_API_KEY=your_openrouter_api_key
    ```
+   You can use the provided `.env.production.template` file as a starting point.
 3. Build and run with Docker Compose:
    ```bash
    docker-compose up --build
@@ -220,11 +222,12 @@ For support, please contact ireknie00@gmail.com
    ```bash
    npm install
    ```
-2. Start development server:
+2. Create a `.env` file with the same environment variables as in `.env.production`
+3. Start development server:
    ```bash
    npm run dev
    ```
-3. Run Stripe webhook listener:
+4. Run Stripe webhook listener:
    ```bash
    stripe listen --forward-to https://[SUPABASE_URL]/functions/v1/webhook-handler
    ```

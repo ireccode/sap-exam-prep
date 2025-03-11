@@ -183,24 +183,13 @@ function validateEnvVar(key: keyof Window['env'], value: string): boolean {
 
 // Get environment variable with validation and monitoring
 export function getEnvVar(key: keyof Window['env']): string {
-  let value: string;
-
-  // Get value based on environment
-  if (import.meta.env.DEV) {
-    value = import.meta.env[key];
-  } else {
-    if (!window.env || !window.env[key]) {
-      throw new Error(`Environment variable ${key} is not defined`);
-    }
-    value = window.env[key];
+  const value = import.meta.env[key];
+  if (!value) {
+    throw new Error(`Environment variable ${key} is not defined`);
   }
 
-  // Validate value
   validateEnvVar(key, value);
-
-  // Monitor access and check expiration
   monitorEnvAccess(key);
-
   return value;
 }
 

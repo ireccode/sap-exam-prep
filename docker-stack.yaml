@@ -18,39 +18,19 @@ services:
         published: 5173
         protocol: tcp
         mode: host
-    secrets:
-      - source: VITE_SUPABASE_URL
-        target: VITE_SUPABASE_URL
-      - source: VITE_SUPABASE_ANON_KEY
-        target: VITE_SUPABASE_ANON_KEY
-      - source: VITE_STRIPE_PUBLISHABLE_KEY
-        target: VITE_STRIPE_PUBLISHABLE_KEY
-      - source: VITE_STRIPE_PREMIUM_PRICE_ID
-        target: VITE_STRIPE_PREMIUM_PRICE_ID
-      - source: VITE_BASIC_ENCRYPTION_KEY
-        target: VITE_BASIC_ENCRYPTION_KEY
-      - source: VITE_PREMIUM_ENCRYPTION_KEY
-        target: VITE_PREMIUM_ENCRYPTION_KEY
-      - source: VITE_WEBHOOK_SECRET
-        target: VITE_WEBHOOK_SECRET
-      - source: VITE_OPENROUTER_API_KEY
-        target: VITE_OPENROUTER_API_KEY
     environment:
       - NODE_ENV=production
       - VIRTUAL_PROTO=https
-      - VITE_SUPABASE_URL_FILE=/run/secrets/VITE_SUPABASE_URL
-      - VITE_SUPABASE_ANON_KEY_FILE=/run/secrets/VITE_SUPABASE_ANON_KEY
-      - VITE_STRIPE_PUBLISHABLE_KEY_FILE=/run/secrets/VITE_STRIPE_PUBLISHABLE_KEY
-      - VITE_STRIPE_PREMIUM_PRICE_ID_FILE=/run/secrets/VITE_STRIPE_PREMIUM_PRICE_ID
-      - VITE_BASIC_ENCRYPTION_KEY_FILE=/run/secrets/VITE_BASIC_ENCRYPTION_KEY
-      - VITE_PREMIUM_ENCRYPTION_KEY_FILE=/run/secrets/VITE_PREMIUM_ENCRYPTION_KEY
-      - VITE_WEBHOOK_SECRET_FILE=/run/secrets/VITE_WEBHOOK_SECRET
-      - VITE_OPENROUTER_API_KEY_FILE=/run/secrets/VITE_OPENROUTER_API_KEY
     volumes:
       - logs:/var/log/nginx
       - data:/app/data
       - public:/app/public
       - /etc/letsencrypt:/etc/letsencrypt
+      # Mount the .env file from the host to the container
+      - type: bind
+        source: ./.env.production
+        target: /app/.env
+        read_only: true
     networks:
       - app-network
 
@@ -106,21 +86,3 @@ volumes:
   logs:
   data:
   public:
-
-secrets:
-  VITE_SUPABASE_URL:
-    external: true
-  VITE_SUPABASE_ANON_KEY:
-    external: true
-  VITE_STRIPE_PUBLISHABLE_KEY:
-    external: true
-  VITE_STRIPE_PREMIUM_PRICE_ID:
-    external: true
-  VITE_BASIC_ENCRYPTION_KEY:
-    external: true
-  VITE_PREMIUM_ENCRYPTION_KEY:
-    external: true
-  VITE_WEBHOOK_SECRET:
-    external: true
-  VITE_OPENROUTER_API_KEY:
-    external: true
