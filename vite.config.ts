@@ -81,7 +81,7 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
       },
     },
-    copyPublicDir: false,
+    copyPublicDir: true,
     outDir: 'dist',
   },
   optimizeDeps: {
