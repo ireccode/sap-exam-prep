@@ -50,6 +50,7 @@ services:
       - logs:/var/log/nginx
       - data:/app/data
       - public:/app/public
+      - /etc/letsencrypt:/etc/letsencrypt
     networks:
       - app-network
 
