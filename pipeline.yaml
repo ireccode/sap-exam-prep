@@ -1,20 +1,29 @@
 name: pipeline
 on:
- push:
-   branches:
-     - "main"
+  push:
+    branches:
+      - "main"
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   packages: write
 
 jobs:
-  build-and-push-image:
+  build-and-push-images:
     runs-on: ubuntu-latest
     needs:
       - run-tests
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -23,33 +32,80 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+      # Build and push app image
+      - name: Build and push app Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          target: app
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ghcr.io/ireccode/sap-exam-prep:latest
             ghcr.io/ireccode/sap-exam-prep:${{ github.sha }}
+          build-args: |
+            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
+            VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
+            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
+            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+
+      # Build and push nginx image
+      - name: Build and push nginx Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: nginx
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/ireccode/sap-exam-prep-nginx:latest
+            ghcr.io/ireccode/sap-exam-prep-nginx:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
     needs:
-      - build-and-push-image
+      - build-and-push-images
+    if: github.ref == 'refs/heads/main'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: create env file
-      run: |
-        echo "GIT_COMMIT_HASH=${{ github.sha }}" >> ./envfile
+      - name: Create deployment env file
+        run: |
+          cat << EOF > ./envfile
+          GIT_COMMIT_HASH=${{ github.sha }}
+          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+          VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
+          VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
+          VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+          VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
+          EOF
 
-    - name: Docker Stack Deploy
-      uses: cssnr/stack-deploy-action@v1
-      with:
-        name: sap-exam-prep
-        file: docker-stack.yaml
-        host: 195.35.22.17
-        user: deploy
-        ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-        env_file: ./envfile
+      - name: Copy docker-compose.prod.yml to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 195.35.22.17
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          source: "docker-compose.prod.yml,envfile"
+          target: "/home/deploy/sap-exam-prep"
+
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 195.35.22.17
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/deploy/sap-exam-prep
+            mv envfile .env.production
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker system prune -af

@@ -1,50 +1,68 @@
-name:  Build and Push Multi-Platform Docker Image
-on:
- push:
-   branches:
-     - "main"
+name: Build and Push Docker Images
 
-permissions:
-  packages: write
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  APP_IMAGE_NAME: ireccode/sap-exam-prep
+  NGINX_IMAGE_NAME: ireccode/sap-exam-prep-nginx
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      # Step 1: Set up variables dynamically
-      - name: Set dynamic variables
-        id: vars
-        run: |
-          echo "tag=ghcr.io/ireccode/sap-exam-prep:${{ matrix.platform }}" >> $GITHUB_ENV
-          echo "platform_tag=$(echo -n ${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
-      # Step 2: Check out the repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-      # Step 3: Log in to the container registry
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: https://ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.PAT }}
-      # Step 4: Set up QEMU for cross-platform builds
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      # Step 5: Set up Docker Buildx
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      # Step 6: Build and push the Docker image for each platform dynamically
-      - name: Build and push by platform
-        uses: docker/build-push-action@v6
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ env.NGINX_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Build and push app image
+      - name: Build and push app Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: ${{ matrix.platform }}
-          push: true
-          tags: |
-            ghcr.io/ireccode/sap-exam-prep-${{ env.platform_tag }}:latest
+          target: app
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
             VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
@@ -54,3 +72,32 @@ jobs:
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
             VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+
+      # Build and push nginx image
+      - name: Build and push nginx Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: nginx
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
+            VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
+            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
+            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+
+      # Trigger deployment if on main branch
+      - name: Trigger deployment
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Deployment triggered for version ${{ steps.meta.outputs.version }}"
+          # Add deployment script or webhook here 
