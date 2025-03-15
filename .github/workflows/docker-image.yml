@@ -8,6 +8,7 @@ on:
     branches: [ main ]
 
 env:
+  CACHE_VERSION: 2 # Increment this to invalidate the cache
   REGISTRY: ghcr.io
   APP_IMAGE_NAME: ireccode/sap-exam-prep
   NGINX_IMAGE_NAME: ireccode/sap-exam-prep-nginx
