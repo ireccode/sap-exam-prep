@@ -108,8 +108,8 @@ jobs:
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
             VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
             VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-          secret-files: |
-            "env_file=.env.production"
+#          secret-files: |
+#            "env_file=.env.production"
 
       # Build and push nginx image
       - name: Build and push nginx Docker image
@@ -132,8 +132,8 @@ jobs:
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
             VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
             VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-          secret-files: |
-            "env_file=.env.production"
+#          secret-files: |
+#            "env_file=.env.production"
 
       # Trigger deployment if on main branch
 #      - name: Trigger deployment
