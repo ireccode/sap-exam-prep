@@ -14,7 +14,7 @@ services:
         VITE_PREMIUM_ENCRYPTION_KEY: ${VITE_PREMIUM_ENCRYPTION_KEY}
         VITE_WEBHOOK_SECRET: ${VITE_WEBHOOK_SECRET}
         VITE_OPENROUTER_API_KEY: ${VITE_OPENROUTER_API_KEY}
-    image: ghcr.io/ireccode/sap-exam-prep_linux-arm64:latest
+    image: ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
     deploy:
       replicas: 1
       restart_policy:
@@ -57,7 +57,7 @@ services:
     build:
       context: . 
       target: nginx      
-    image: ghcr.io/ireccode/sap-exam-prep-nginx:latest
+    image: ghcr.io/ireccode/sap-exam-prep-nginx:${GIT_COMMIT_HASH:-latest}
     user: root
     ports:
       - "80:80"
@@ -73,7 +73,6 @@ services:
       - type: bind
         source: ./init-certs.sh
         target: /docker-entrypoint.d/init-certs.sh
-      - dist:/usr/share/nginx/html:ro
     environment:
       - NGINX_HOST=examprep.techtreasuretrove.in
       - NGINX_PORT=443

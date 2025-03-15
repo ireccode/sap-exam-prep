@@ -36,19 +36,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      # Extract metadata for app image
+      - name: Extract metadata for app image
+        id: meta-app
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}
-            ${{ env.REGISTRY }}/${{ env.NGINX_IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=sha,format=long
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # Extract metadata for nginx image
+      - name: Extract metadata for nginx image
+        id: meta-nginx
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.NGINX_IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
 
       # Build and push app image
@@ -59,11 +66,12 @@ jobs:
           target: app
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-app.outputs.tags }}
+          labels: ${{ steps.meta-app.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            GIT_COMMIT_HASH=${{ github.sha }}
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
             VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
             VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
@@ -81,11 +89,12 @@ jobs:
           target: nginx
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-nginx.outputs.tags }}
+          labels: ${{ steps.meta-nginx.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            GIT_COMMIT_HASH=${{ github.sha }}
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
             VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
             VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
@@ -96,8 +105,8 @@ jobs:
             VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
 
       # Trigger deployment if on main branch
-      - name: Trigger deployment
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo "Deployment triggered for version ${{ steps.meta.outputs.version }}"
+#      - name: Trigger deployment
+#        if: github.ref == 'refs/heads/main'
+#        run: |
+#          echo "Deployment triggered for version ${{ steps.meta.outputs.version }}"
           # Add deployment script or webhook here 

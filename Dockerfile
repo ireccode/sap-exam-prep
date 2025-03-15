@@ -101,16 +101,18 @@ COPY examprep_app_nginx.conf /etc/nginx/conf.d/default.conf
 COPY init-certs.sh /docker-entrypoint.d/init-certs.sh
 RUN chmod +x /docker-entrypoint.d/init-certs.sh
 
+# Copy dist files from build stage and set proper permissions
+RUN --mount=type=bind,from=build,source=/app/dist,target=/tmp/dist \
+    cp -r /tmp/dist/* /usr/share/nginx/html/ && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
 # Create entrypoint script for Nginx
 RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo 'set -e' >> /docker-entrypoint.sh && \
     echo '/docker-entrypoint.d/init-certs.sh' >> /docker-entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh
-
-# Add health check for Nginx
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --quiet --tries=1 --spider --timeout=1 --user-agent="Docker-Healthcheck" http://localhost:80/ || exit 1
 
 EXPOSE 80 443
 CMD ["/docker-entrypoint.sh"]

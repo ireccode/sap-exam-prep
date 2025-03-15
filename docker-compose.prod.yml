@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: ghcr.io/ireccode/sap-exam-prep:latest
+    image: ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
     restart: unless-stopped
     deploy:
       resources:
@@ -42,7 +42,7 @@ services:
         max-file: "3"
 
   nginx:
-    image: ghcr.io/ireccode/sap-exam-prep-nginx:latest
+    image: ghcr.io/ireccode/sap-exam-prep-nginx:${GIT_COMMIT_HASH:-latest}
     restart: unless-stopped
     deploy:
       resources:
@@ -68,7 +68,6 @@ services:
         source: ./init-certs.sh
         target: /docker-entrypoint.d/init-certs.sh
         read_only: true
-      - dist:/usr/share/nginx/html:ro
     environment:
       - NGINX_HOST=examprep.techtreasuretrove.in
       - NGINX_PORT=443
@@ -99,10 +98,6 @@ services:
 networks:
   app-network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
     driver_opts:
       encrypted: "true"
 
