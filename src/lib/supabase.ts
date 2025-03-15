@@ -1,16 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { Database } from '@/types/supabase';
 
+// Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('Initializing Supabase client with URL:', supabaseUrl);
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+// Validate required environment variables
+if (!supabaseUrl) {
+  console.error('Missing VITE_SUPABASE_URL environment variable');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+if (!supabaseAnonKey) {
+  console.error('Missing VITE_SUPABASE_ANON_KEY environment variable');
+}
+
+// Create Supabase client
+export const supabase = createBrowserClient<Database>(
+  supabaseUrl,
+  supabaseAnonKey
+);
 
 // Debug: Test the connection
 supabase.auth.onAuthStateChange((event, session) => {

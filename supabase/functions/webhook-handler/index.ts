@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno';
+import { EnvironmentError } from '../../../src/services/aiService';
 
 // Initialize Stripe with runtime config
 const stripe = Stripe(Deno.env.get('PRIVATE_STRIPE_KEY') || '', {
@@ -290,6 +291,13 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    if (error instanceof EnvironmentError) {
+      console.error('Environment error:', error.message);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     console.error('Webhook error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

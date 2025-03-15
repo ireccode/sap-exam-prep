@@ -5,15 +5,6 @@ services:
     build:
       context: .
       target: app
-      args:
-        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
-        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY}
-        VITE_STRIPE_PREMIUM_PRICE_ID: ${VITE_STRIPE_PREMIUM_PRICE_ID}
-        VITE_BASIC_ENCRYPTION_KEY: ${VITE_BASIC_ENCRYPTION_KEY}
-        VITE_PREMIUM_ENCRYPTION_KEY: ${VITE_PREMIUM_ENCRYPTION_KEY}
-        VITE_WEBHOOK_SECRET: ${VITE_WEBHOOK_SECRET}
-        VITE_OPENROUTER_API_KEY: ${VITE_OPENROUTER_API_KEY}
     image: ghcr.io/ireccode/sap-exam-prep:${GIT_COMMIT_HASH:-latest}
     deploy:
       replicas: 1
@@ -23,24 +14,12 @@ services:
       - "5173:5173"
     expose:
       - 5173
-    env_file: ./data/.env.production
+    env_file: ./.env
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - VIRTUAL_PROTO=https
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
-      - VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
-      - VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
-      - VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
-      - VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
-      - VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
     volumes:
       - logs:/var/log/nginx
-      - type: bind
-        source: ./data/.env.production
-        target: /app/.env
-        read_only: true
       - data:/app/data
       - public:/app/public
       - /etc/letsencrypt:/etc/letsencrypt
@@ -50,6 +29,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     networks:
       - app-network
 
@@ -83,15 +63,11 @@ services:
       chmod +x /docker-entrypoint.d/init-certs.sh &&
       /docker-entrypoint.d/init-certs.sh &&
       nginx -g 'daemon off;'"
-#    depends_on:
-#      app:
-#        condition: service_healthy
+    depends_on:
+      app:
+        condition: service_healthy
     networks:
       - app-network
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
 
 networks:
   app-network:

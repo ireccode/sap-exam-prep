@@ -13,8 +13,9 @@ services:
           cpus: '0.25'
           memory: 256M
     ports:
-      - "127.0.0.1:5173:5173"  # Only accessible locally, proxied through nginx
+      - "5173:5173"  
     environment:
+      - HOST=0.0.0.0  # Allow external connections
       - NODE_ENV=production
       - VIRTUAL_PROTO=https
     volumes:
@@ -26,7 +27,7 @@ services:
       - data:/app/data
       - public:/app/public
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      - dist:/app/dist
+      - ./dist:/app/dist
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173/"]
       interval: 30s

@@ -7,9 +7,9 @@ import crypto from 'crypto';
 dotenv.config();
 
 // Make sure we have the encryption key
-const ENCRYPTION_KEY = process.env.VITE_PREMIUM_ENCRYPTION_KEY;
+const ENCRYPTION_KEY = process.env.PREMIUM_ENCRYPTION_KEY;
 if (!ENCRYPTION_KEY) {
-  console.error('VITE_PREMIUM_ENCRYPTION_KEY not found in environment variables');
+  console.error('PREMIUM_ENCRYPTION_KEY not found in environment variables');
   process.exit(1);
 }
 

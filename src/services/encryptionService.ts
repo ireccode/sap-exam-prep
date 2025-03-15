@@ -1,4 +1,5 @@
 import { Question } from '@/types/question';
+import { getServerEnvVar } from '@/lib/env';
 
 export class EncryptionService {
   private static instance: EncryptionService;
@@ -8,15 +9,8 @@ export class EncryptionService {
   private decoder: TextDecoder;
 
   private constructor() {
-    const premiumKey = import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY;
-    const basicKey = import.meta.env.VITE_BASIC_ENCRYPTION_KEY;
-
-    if (!premiumKey || !basicKey) {
-      throw new Error('Missing encryption keys in environment variables');
-    }
-
-    this.premiumEncryptionKey = premiumKey;
-    this.basicEncryptionKey = basicKey;
+    this.premiumEncryptionKey = getServerEnvVar('PREMIUM_ENCRYPTION_KEY');
+    this.basicEncryptionKey = getServerEnvVar('BASIC_ENCRYPTION_KEY');
     this.encoder = new TextEncoder();
     this.decoder = new TextDecoder();
   }

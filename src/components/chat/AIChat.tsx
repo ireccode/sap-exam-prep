@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, ArrowLeft, Brain, HelpCircle } from 'lucide-react';
-import { AIService } from '@/services/aiService';
+import { AIService, EnvironmentError, APIError } from '@/services/aiService';
 import { MODELS } from '@/services/aiConfig';
 import ReactMarkdown from 'react-markdown';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -36,10 +36,11 @@ export function AIChat() {
   const location = useLocation();
   const navigate = useNavigate();
   const previousPath = useExamStore(state => state.previousPath);
+  const [error, setError] = useState<string | null>(null);
 
-  // Use Vite's import.meta.env instead of process.env
+  // Use process.env
   const aiService = useRef(
-    new AIService(import.meta.env.VITE_OPENROUTER_API_KEY || '', ragContext)
+    new AIService(ragContext)
   );
 
   useEffect(() => {
@@ -70,13 +71,23 @@ export function AIChat() {
       const response = await aiService.current.getExplanation(messageToSend);
       setMessages([...newMessages, { role: 'assistant', content: response }]);
     } catch (error) {
-      console.error('Failed to get response:', error);
+      let errorMessage = 'An error occurred';
+      
+      if (error instanceof EnvironmentError) {
+        errorMessage = 'Configuration error: ' + error.message;
+      } else if (error instanceof APIError) {
+        errorMessage = `API error (${error.status}): ${error.message}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
+      console.error('Chat error:', error);
       setMessages([
         ...newMessages,
         {
           role: 'assistant',
-          content:
-            'Sorry, there was an error processing your request. The model might be temporarily unavailable. Please try another model or try again later.',
+          content: errorMessage,
         },
       ]);
     } finally {

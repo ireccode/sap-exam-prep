@@ -7,38 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Copy source code and environment file
+# Copy source code
 COPY . .
-
-# Build-time arguments for environment variables
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ARG VITE_STRIPE_PUBLISHABLE_KEY
-ARG VITE_STRIPE_PREMIUM_PRICE_ID
-ARG VITE_BASIC_ENCRYPTION_KEY
-ARG VITE_PREMIUM_ENCRYPTION_KEY
-ARG VITE_WEBHOOK_SECRET
-ARG VITE_OPENROUTER_API_KEY
-
-# Make ARG values available during build
-ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-ENV VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-ENV VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
-ENV VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}
-ENV VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}
-ENV VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}
-ENV VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}
-ENV VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}
-
-# Create a .env file for the build
-RUN echo "VITE_SUPABASE_URL=${VITE_SUPABASE_URL}" > .env && \
-    echo "VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}" >> .env && \
-    echo "VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}" >> .env && \
-    echo "VITE_STRIPE_PREMIUM_PRICE_ID=${VITE_STRIPE_PREMIUM_PRICE_ID}" >> .env && \
-    echo "VITE_BASIC_ENCRYPTION_KEY=${VITE_BASIC_ENCRYPTION_KEY}" >> .env && \
-    echo "VITE_PREMIUM_ENCRYPTION_KEY=${VITE_PREMIUM_ENCRYPTION_KEY}" >> .env && \
-    echo "VITE_WEBHOOK_SECRET=${VITE_WEBHOOK_SECRET}" >> .env && \
-    echo "VITE_OPENROUTER_API_KEY=${VITE_OPENROUTER_API_KEY}" >> .env
 
 # Build the application
 RUN npm run build
@@ -50,21 +20,17 @@ RUN echo "Files in dist directory:" && ls -la dist/
 FROM node:20-alpine as app
 
 WORKDIR /app
+
+# Copy built files and necessary configs
 COPY --from=build /app/dist /app/dist
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/.env /app/.env
+COPY --from=build /app/package.json /app/package.json
 
-# Install required packages
-RUN apk add --no-cache gettext
-
-# Create entrypoint script with environment file handling
+# Create entrypoint script
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
-    echo 'if [ -f "/app/.env" ]; then' >> /app/entrypoint.sh && \
-    echo '  echo "Using production environment file"' >> /app/entrypoint.sh && \
-    echo '  set -a' >> /app/entrypoint.sh && \
-    echo '  . /app/.env' >> /app/entrypoint.sh && \
-    echo '  set +a' >> /app/entrypoint.sh && \
+    echo 'if [ -f /app/.env ]; then' >> /app/entrypoint.sh && \
+    echo '  echo "Loading environment from /app/.env"' >> /app/entrypoint.sh && \
+    echo '  export $(grep -v "^#" /app/.env | xargs)' >> /app/entrypoint.sh && \
     echo 'else' >> /app/entrypoint.sh && \
     echo '  echo "Warning: Production environment file not found at /app/.env"' >> /app/entrypoint.sh && \
     echo '  echo "Using default environment variables"' >> /app/entrypoint.sh && \

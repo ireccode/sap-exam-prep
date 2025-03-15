@@ -46,16 +46,14 @@ export default defineConfig({
     react(),
     copyPublicFiles()
   ],
-  envPrefix: 'VITE_',
   server: {
+    host: '0.0.0.0', // Allow external access
+    port: 5173,
     proxy: {
       '/api/chat': {
         target: 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/chat/, ''),
-        headers: {
-          'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`
-        }
       }
     }
   },
@@ -86,6 +84,7 @@ export default defineConfig({
     },
     copyPublicDir: true,
     outDir: 'dist',
+    sourcemap: false, // Disable sourcemaps for smaller build size
   },
   optimizeDeps: {
     include: ['@supabase/supabase-js', 'crypto-browserify', 'stream-browserify', 'buffer', 'util', 'process'],
@@ -103,14 +102,6 @@ export default defineConfig({
   },
   publicDir: 'public',
   define: {
-    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
-    'import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY': JSON.stringify(process.env.VITE_STRIPE_PUBLISHABLE_KEY),
-    'import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID': JSON.stringify(process.env.VITE_STRIPE_PREMIUM_PRICE_ID),
-    'import.meta.env.VITE_BASIC_ENCRYPTION_KEY': JSON.stringify(process.env.VITE_BASIC_ENCRYPTION_KEY),
-    'import.meta.env.VITE_PREMIUM_ENCRYPTION_KEY': JSON.stringify(process.env.VITE_PREMIUM_ENCRYPTION_KEY),
-    'import.meta.env.VITE_WEBHOOK_SECRET': JSON.stringify(process.env.VITE_WEBHOOK_SECRET),
-    'import.meta.env.VITE_OPENROUTER_API_KEY': JSON.stringify(process.env.VITE_OPENROUTER_API_KEY),
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     global: 'globalThis',
   },

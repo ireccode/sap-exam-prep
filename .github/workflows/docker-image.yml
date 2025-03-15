@@ -36,6 +36,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PAT }}
 
+      # Create environment file for build
+      - name: Create environment file
+        run: |
+          cat > .env.production << EOF
+          # Supabase Configuration (client-side)
+          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          
+          # Stripe Configuration (client-side)
+          VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+          
+          # Encryption Keys (server-side only)
+          BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
+          PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
+          
+          # API Keys (server-side only)
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+          
+          # Build Information
+          GIT_COMMIT_HASH=${{ github.sha }}
+          EOF
+
       # Extract metadata for app image
       - name: Extract metadata for app image
         id: meta-app
@@ -72,14 +96,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             GIT_COMMIT_HASH=${{ github.sha }}
-            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
-            VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
-            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
-            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+          secret-files: |
+            "env_file=.env.production"
 
       # Build and push nginx image
       - name: Build and push nginx Docker image
@@ -95,14 +113,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             GIT_COMMIT_HASH=${{ github.sha }}
-            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.VITE_BASIC_ENCRYPTION_KEY }}
-            VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }}
-            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.VITE_PREMIUM_ENCRYPTION_KEY }}
-            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_WEBHOOK_SECRET=${{ secrets.VITE_WEBHOOK_SECRET }}
+          secret-files: |
+            "env_file=.env.production"
 
       # Trigger deployment if on main branch
 #      - name: Trigger deployment
