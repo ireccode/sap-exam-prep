@@ -8,7 +8,6 @@ on:
     branches: [ main ]
 
 env:
-  CACHE_VERSION: 2 # Increment this to invalidate the cache
   REGISTRY: ghcr.io
   APP_IMAGE_NAME: ireccode/sap-exam-prep
   NGINX_IMAGE_NAME: ireccode/sap-exam-prep-nginx
@@ -98,19 +97,19 @@ jobs:
           labels: ${{ steps.meta-app.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-#          build-args: |
-#            GIT_COMMIT_HASH=${{ github.sha }}
-#            BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
-#            PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
-#            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
-#            WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-#            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-#            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-#            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-#            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-#            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
-#            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
-#            VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+          build-args: |
+            GIT_COMMIT_HASH=${{ github.sha }}
+            BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
+            PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
+            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+            WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
+            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
+            VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
 #          secret-files: |
 #            "env_file=.env.production"
 
@@ -126,15 +125,19 @@ jobs:
           labels: ${{ steps.meta-nginx.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-#          build-args: |
-#            GIT_COMMIT_HASH=${{ github.sha }}
-#            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-#            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-#            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-#            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-#            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
-#            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
-#            VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+          build-args: |
+            GIT_COMMIT_HASH=${{ github.sha }}
+            BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
+            PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
+            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+            WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
+            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
+            VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
+            VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
 #          secret-files: |
 #            "env_file=.env.production"
 
