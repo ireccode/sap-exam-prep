@@ -24,6 +24,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Clear npm cache
+        run: npm cache clean --force        
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -132,8 +135,8 @@ jobs:
             VITE_BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
             VITE_PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
             VITE_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-#          secret-files: |
-#            "env_file=.env.production"
+          secret-files: |
+            "env_file=.env.production"
 
       # Trigger deployment if on main branch
 #      - name: Trigger deployment
