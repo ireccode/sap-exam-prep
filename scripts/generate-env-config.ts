@@ -10,11 +10,11 @@ const env = {
 
 // Create env-config.js content
 const envConfig = {
-  // Only include client-side variables
-  VITE_SUPABASE_URL: env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_ANON_KEY: env.VITE_SUPABASE_ANON_KEY,
-  VITE_STRIPE_PUBLISHABLE_KEY: env.VITE_STRIPE_PUBLISHABLE_KEY,
-  VITE_STRIPE_PREMIUM_PRICE_ID: env.VITE_STRIPE_PREMIUM_PRICE_ID
+  // Only include server-side variables
+  BASIC_ENCRYPTION_KEY: env.BASIC_ENCRYPTION_KEY,
+  PREMIUM_ENCRYPTION_KEY: env.PREMIUM_ENCRYPTION_KEY,
+  OPENROUTER_API_KEY: env.OPENROUTER_API_KEY,
+  WEBHOOK_SECRET: env.WEBHOOK_SECRET
 };
 
 // Create the output
@@ -23,8 +23,8 @@ const output = `window.env = ${JSON.stringify(envConfig, null, 2)};`;
 // Write to public directory
 fs.writeFileSync(path.join(process.cwd(), 'public', 'env-config.js'), output);
 console.log('Generated env-config.js with values:', {
-  VITE_SUPABASE_URL: envConfig.VITE_SUPABASE_URL ? '✓' : '✗',
-  VITE_SUPABASE_ANON_KEY: envConfig.VITE_SUPABASE_ANON_KEY ? '✓' : '✗',
-  VITE_STRIPE_PUBLISHABLE_KEY: envConfig.VITE_STRIPE_PUBLISHABLE_KEY ? '✓' : '✗',
-  VITE_STRIPE_PREMIUM_PRICE_ID: envConfig.VITE_STRIPE_PREMIUM_PRICE_ID ? '✓' : '✗'
+  BASIC_ENCRYPTION_KEY: envConfig.BASIC_ENCRYPTION_KEY ? '✓' : '✗',
+  PREMIUM_ENCRYPTION_KEY: envConfig.PREMIUM_ENCRYPTION_KEY ? '✓' : '✗',
+  OPENROUTER_API_KEY: envConfig.OPENROUTER_API_KEY ? '✓' : '✗',
+  WEBHOOK_SECRET: envConfig.WEBHOOK_SECRET ? '✓' : '✗'
 }); 

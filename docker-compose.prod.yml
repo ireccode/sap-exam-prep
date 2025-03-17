@@ -29,7 +29,7 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./dist:/app/dist
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://0.0.0.0:5173/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -69,6 +69,8 @@ services:
         source: ./init-certs.sh
         target: /docker-entrypoint.d/init-certs.sh
         read_only: true
+      - ./.env.production:/usr/share/nginx/html/.env
+      - ./dist:/usr/share/nginx/html:ro
     environment:
       - NGINX_HOST=examprep.techtreasuretrove.in
       - NGINX_PORT=443

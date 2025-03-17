@@ -23,9 +23,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Clear npm cache
-        run: npm cache clean --force        
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 

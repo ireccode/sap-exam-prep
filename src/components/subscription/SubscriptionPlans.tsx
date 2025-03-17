@@ -74,47 +74,6 @@ export function SubscriptionPlans() {
         </p>
       </div>
 
-      {subscription && (
-        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-xl font-semibold mb-2">Current Subscription</h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600">
-                Status: <span className="font-medium capitalize">{subscription.status}</span>
-              </p>
-              {subscription.cancel_at_period_end && (
-                <p className="text-red-600">
-                  Your subscription will end on{' '}
-                  {new Date(subscription.current_period_end).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-            <div className="space-x-4">
-              {subscription.cancel_at_period_end ? (
-                <button
-                  onClick={handleReactivateSubscription}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Reactivate
-                </button>
-              ) : (
-                <button
-                  onClick={handleCancelSubscription}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                >
-                  Cancel
-                </button>
-              )}
-              <button
-                onClick={handleManageSubscription}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Manage Subscription
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Free Plan */}

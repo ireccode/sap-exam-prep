@@ -13,7 +13,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { ProfileForm } from '@/components/profile/ProfileForm';
+import { Profile } from '@/components/Profile/Profile';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSuccessPage';
@@ -21,6 +21,8 @@ import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelP
 import { RoadmapPage } from './components/roadmap/RoadmapPage';
 import { TermsAndConditions } from './components/legal/TermsAndConditions';
 import { ContactPage } from '@/pages/ContactPage';
+import { UpdatePassword } from '@/components/Auth/UpdatePassword';
+import { Toaster } from 'react-hot-toast';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -85,11 +87,11 @@ const SafeTrainingDeck = () => (
   </ErrorBoundary>
 );
 
-// Add SafeProfileForm component
+// Update SafeProfileForm component
 const SafeProfileForm = () => (
   <ErrorBoundary>
     <ProtectedRoute>
-      <ProfileForm />
+      <Profile />
     </ProtectedRoute>
   </ErrorBoundary>
 );
@@ -108,6 +110,7 @@ export function App() {
       <AuthProvider>
         <SubscriptionProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Toaster position="top-right" />
             <Header />
             <main className="container mx-auto px-4 py-8 flex-grow">
               <Routes>
@@ -127,6 +130,7 @@ export function App() {
                 <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                 <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/update-password" element={<UpdatePassword />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
