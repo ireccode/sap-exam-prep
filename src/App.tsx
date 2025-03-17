@@ -13,7 +13,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { Profile } from '@/components/Profile/Profile';
+import { Profile } from '@/components/profile/Profile';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { SubscriptionSuccessPage } from '@/pages/subscription/SubscriptionSuccessPage';
@@ -21,7 +21,7 @@ import { SubscriptionCancelPage } from '@/pages/subscription/SubscriptionCancelP
 import { RoadmapPage } from './components/roadmap/RoadmapPage';
 import { TermsAndConditions } from './components/legal/TermsAndConditions';
 import { ContactPage } from '@/pages/ContactPage';
-import { UpdatePassword } from '@/components/Auth/UpdatePassword';
+import { UpdatePassword } from '@/components/auth/UpdatePassword';
 import { Toaster } from 'react-hot-toast';
 
 // Error Boundary Component
