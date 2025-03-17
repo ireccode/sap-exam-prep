@@ -7,6 +7,7 @@ import { Clock, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useProgressStore } from '@/store/useProgressStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { Question } from '@/types/question';
+import { areAllAnswersCorrect } from '@/utils/questionUtils';
 
 export function MiniExam() {
   const {
@@ -44,13 +45,42 @@ export function MiniExam() {
     
     // Process questions to ensure consistent format
     const processedQuestions = questions.map(question => {
-      // Ensure correctAnswer is always an array and set requiredAnswers
+      // Check if question has multiple answers (correctAnswers property)
+      const hasMultipleAnswers = 'correctAnswers' in question && 
+        Array.isArray((question as any).correctAnswers);
+      
+      if (hasMultipleAnswers) {
+        const multiAnswerQuestion = question as Question & { correctAnswers: number[] };
+        console.log('Processing multi-answer question:', {
+          id: multiAnswerQuestion.id,
+          correctAnswers: multiAnswerQuestion.correctAnswers,
+          requiredAnswers: multiAnswerQuestion.correctAnswers.length
+        });
+        return {
+          ...multiAnswerQuestion,
+          correctAnswer: multiAnswerQuestion.correctAnswers,
+          requiredAnswers: multiAnswerQuestion.correctAnswers.length
+        };
+      }
+      
+      // Single answer question (correctAnswer property)
+      console.log('Processing single-answer question:', {
+        id: question.id,
+        correctAnswer: question.correctAnswer,
+        requiredAnswers: 1
+      });
       return {
         ...question,
-        correctAnswer: Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer],
+        correctAnswer: Array.isArray(question.correctAnswer) ? question.correctAnswer : [question.correctAnswer] as number[],
         requiredAnswers: 1
       };
     });
+
+    console.log('MiniExam - Loading Questions:', processedQuestions.map(q => ({
+      id: q.id,
+      correctAnswer: q.correctAnswer,
+      requiredAnswers: q.requiredAnswers
+    })));
 
     setQuestions(processedQuestions);
     setCurrentQuestion(processedQuestions[0]);
@@ -96,9 +126,17 @@ export function MiniExam() {
       if (answers === undefined) return false;
       
       const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
-      const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
-      return selectedAnswerArray.length === correctAnswers.length &&
-        selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+      const correctAnswers = q.correctAnswer;
+      const requiredAnswers = q.requiredAnswers || 1;
+      
+      console.log('MiniExam - Checking Answer:', {
+        questionId: q.id,
+        selectedAnswerArray,
+        correctAnswers,
+        requiredAnswers
+      });
+      
+      return areAllAnswersCorrect(selectedAnswerArray, correctAnswers, requiredAnswers);
     }).length;
     
     setCorrectAnswers(correct);
@@ -112,9 +150,9 @@ export function MiniExam() {
         if (answers === undefined) return { ...acc, [q.id]: false };
         
         const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
-        const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
-        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
-          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+        const correctAnswers = q.correctAnswer;
+        const requiredAnswers = q.requiredAnswers || 1;
+        const isCorrect = areAllAnswersCorrect(selectedAnswerArray, correctAnswers, requiredAnswers);
         return {
           ...acc,
           [q.id]: isCorrect
@@ -136,9 +174,9 @@ export function MiniExam() {
         if (answers === undefined) return;
         
         const selectedAnswerArray = Array.isArray(answers) ? answers : [answers];
-        const correctAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
-        const isCorrect = selectedAnswerArray.length === correctAnswers.length &&
-          selectedAnswerArray.every((answer: number) => correctAnswers.includes(answer));
+        const correctAnswers = q.correctAnswer;
+        const requiredAnswers = q.requiredAnswers || 1;
+        const isCorrect = areAllAnswersCorrect(selectedAnswerArray, correctAnswers, requiredAnswers);
         useProgressStore.getState().updateProgress(q.category, q.id, isCorrect);
       });
     }

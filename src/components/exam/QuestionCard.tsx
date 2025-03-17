@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Question } from '../../types/question';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '@/store/useExamStore';
 import { Crown, Check, X } from 'lucide-react';
+import { areAllAnswersCorrect } from '@/utils/questionUtils';
 
 interface QuestionCardProps {
   question: Question;
@@ -13,64 +14,54 @@ interface QuestionCardProps {
   isSubmitted?: boolean;
 }
 
-const areAllAnswersCorrect = (selectedAnswers: number[], correctAnswers: number | number[]) => {
-  // Convert single number to array if needed
-  const correctAnswerArray = Array.isArray(correctAnswers) ? correctAnswers : [correctAnswers];
-
-  console.log('QuestionCard - Answer Check:', {
-    selectedAnswers,
-    correctAnswerArray,
-    requiredAnswers: correctAnswerArray.length,
-    selectedLength: selectedAnswers.length,
-    correctLength: correctAnswerArray.length,
-  });
-
-  // For single answer questions
-  if (correctAnswerArray.length === 1) {
-    return selectedAnswers.length === 1 && correctAnswerArray.includes(selectedAnswers[0]);
-  }
-
-  // For multiple answer questions:
-  // 1. Check if we have the right number of answers
-  // 2. Check if all selected answers are in correctAnswers (order independent)
-  // 3. Check if all correct answers are selected (order independent)
-  const hasCorrectCount = selectedAnswers.length === correctAnswerArray.length;
-  const allSelectedAreCorrect = selectedAnswers.every(answer => correctAnswerArray.includes(answer));
-  const allCorrectAreSelected = correctAnswerArray.every(answer => selectedAnswers.includes(answer));
-
-  console.log('Multiple Answer Check:', {
-    hasCorrectCount,
-    allSelectedAreCorrect,
-    allCorrectAreSelected
-  });
-
-  return hasCorrectCount && allSelectedAreCorrect && allCorrectAreSelected;
-};
-
 export function QuestionCard({ 
   question, 
   selectedAnswer, 
   onAnswer, 
-  showResult,
-  isSubmitted 
+  showResult = false,
+  isSubmitted = false
 }: QuestionCardProps) {
   const navigate = useNavigate();
   const setPreviousPath = useExamStore(state => state.setPreviousPath);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   
-  // Ensure selectedAnswers is always an array
-  const selectedAnswers = Array.isArray(selectedAnswer) ? selectedAnswer : selectedAnswer !== undefined ? [selectedAnswer] : [];
-  
-  // Ensure correctAnswers is always an array and properly initialized
-  const correctAnswers = Array.isArray(question.correctAnswer) ? 
-    question.correctAnswer : 
-    question.correctAnswer !== undefined ? [question.correctAnswer] : [];
-  
-  // Set requiredAnswers based on correctAnswers length if not specified
-  const requiredAnswers = question.requiredAnswers || correctAnswers.length;
+  useEffect(() => {
+    if (selectedAnswer !== undefined) {
+      setSelectedAnswers(Array.isArray(selectedAnswer) ? selectedAnswer : [selectedAnswer]);
+    } else {
+      setSelectedAnswers([]);
+    }
+  }, [selectedAnswer]);
 
-  const handleAnswerClick = (index: number) => {
+  const handleAnswerClick = (answerId: number) => {
     if (isSubmitted) return;
-    onAnswer(index);
+
+    let newSelectedAnswers: number[];
+    
+    // For questions with multiple correct answers
+    if (question.requiredAnswers && question.requiredAnswers > 1) {
+      if (selectedAnswers.includes(answerId)) {
+        // Remove if already selected
+        newSelectedAnswers = selectedAnswers.filter(id => id !== answerId);
+      } else {
+        // Add to selection
+        newSelectedAnswers = [...selectedAnswers, answerId];
+      }
+    } else {
+      // For single answer questions, replace the selection
+      newSelectedAnswers = [answerId];
+    }
+    
+    setSelectedAnswers(newSelectedAnswers);
+    
+    // If it's a single answer question, notify parent immediately
+    if (question.requiredAnswers === 1) {
+      onAnswer(answerId);
+    } else {
+      // For multiple answers, we need to call onAnswer with the last clicked answer
+      // The parent component will handle tracking all selected answers
+      onAnswer(answerId);
+    }
   };
 
   const handleMoreDetails = () => {
@@ -82,14 +73,28 @@ export function QuestionCard({
     });
   };
 
+  const isAnswerCorrect = (answerId: number) => {
+    const correctAnswerArray = Array.isArray(question.correctAnswer) 
+      ? question.correctAnswer 
+      : [question.correctAnswer];
+    return correctAnswerArray.includes(answerId);
+  };
+
+  const isQuestionCorrect = () => {
+    const correctAnswerArray = Array.isArray(question.correctAnswer) 
+      ? question.correctAnswer 
+      : [question.correctAnswer];
+    return areAllAnswersCorrect(selectedAnswers, correctAnswerArray, question.requiredAnswers || 1);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-lg font-semibold">
           {question.question}
-          {requiredAnswers > 1 && (
+          {question.requiredAnswers > 1 && (
             <span className="text-sm font-normal text-gray-600 ml-2">
-              (Select {requiredAnswers} answers - Selected {selectedAnswers.length})
+              (Select {question.requiredAnswers} answers - Selected {selectedAnswers.length})
             </span>
           )}
         </h3>
@@ -102,7 +107,7 @@ export function QuestionCard({
       <div className="space-y-3">
         {question.options.map((option, index) => {
           const isSelected = selectedAnswers.includes(index);
-          const isCorrect = correctAnswers.includes(index);
+          const isCorrect = isAnswerCorrect(index);
 
           return (
             <button

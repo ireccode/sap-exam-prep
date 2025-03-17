@@ -1,6 +1,0 @@
-window.env = {
-  "BASIC_ENCRYPTION_KEY": "YETsRL3gnn5K1uFy5yxTHb",
-  "PREMIUM_ENCRYPTION_KEY": "ba8cjmtIGc34XIMo1q2S",
-  "OPENROUTER_API_KEY": "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",
-  "WEBHOOK_SECRET": "whsec_Hf9ZZMYGq8npvyNlKFJMgzBY4VSQnFtX"
-};
