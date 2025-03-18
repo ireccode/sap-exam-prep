@@ -1,15 +1,15 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno';
-import { EnvironmentError } from '../../../src/services/aiService';
 
 // Initialize Stripe with runtime config
-const stripe = Stripe(Deno.env.get('PRIVATE_STRIPE_KEY') || '', {
+const stripe = Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2024-11-20.acacia',
   httpClient: Stripe.createFetchHttpClient()
 });
 
-const webhookSecret = Deno.env.get('PRIVATE_WEBHOOK_SECRET') || '';
+// Use correct webhook secret
+const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
 
 // Initialize Supabase admin client
 const supabaseAdmin = createClient(
@@ -57,6 +57,7 @@ serve(async (req) => {
       webhookSecretPrefix: webhookSecret.substring(0, 10) + '...'
     });
 
+    // Get raw body for signature verification
     const body = await req.text();
     console.log('Request body details:', {
       length: body.length,
@@ -65,7 +66,7 @@ serve(async (req) => {
 
     let event;
     try {
-      // Use Stripe's built-in verification
+      // Use Stripe's built-in verification with async version
       event = await stripe.webhooks.constructEventAsync(
         body,
         signature,
@@ -291,13 +292,6 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    if (error instanceof EnvironmentError) {
-      console.error('Environment error:', error.message);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
     console.error('Webhook error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
