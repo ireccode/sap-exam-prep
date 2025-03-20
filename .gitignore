@@ -6,6 +6,7 @@ node_modules/
 dist-ssr
 *.local
 secrets
+public/env-config.js
 
 # Environment files
 .env

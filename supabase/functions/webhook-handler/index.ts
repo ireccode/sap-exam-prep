@@ -9,7 +9,7 @@ const stripe = Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
 });
 
 // Use correct webhook secret
-const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
+const webhookSecret = Deno.env.get('WEBHOOK_SECRET') || '';
 
 // Initialize Supabase admin client
 const supabaseAdmin = createClient(
