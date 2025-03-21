@@ -1,11 +1,11 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { serve } from 'https://deno.land/std@0.200.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import Stripe from 'https://esm.sh/stripe@12.4.0?target=deno';
+import Stripe from 'https://esm.sh/stripe@12.4.0?deno-std=0.200.0';
 
 // Initialize Stripe with runtime config
-const stripe = Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2024-11-20.acacia',
-  httpClient: Stripe.createFetchHttpClient()
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+  apiVersion: '2023-10-16', // Use a stable API version
+  httpClient: Stripe.createFetchHttpClient(),
 });
 
 // Use correct webhook secret
