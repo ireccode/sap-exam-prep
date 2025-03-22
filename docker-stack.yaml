@@ -5,14 +5,22 @@ services:
     image: ghcr.io/ireccode/sap-exam-prep:latest
     deploy:
       replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 1h
-        max_attempts: 3
-      update_config:
-        parallelism: 1
-        order: start-first
-        failure_action: pause
+    update_config:
+      parallelism: 1
+      order: start-first
+      failure_action: pause
+      delay: 10s
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 512M
+      reservations:
+        cpus: '0.1'
+        memory: 128M
     ports:
       - target: 5173
         published: 5173
@@ -43,6 +51,24 @@ services:
   nginx:
     image: ghcr.io/ireccode/sap-exam-prep-nginx:latest
     user: root
+    deploy:
+      replicas: 2
+    update_config:
+      parallelism: 1
+      order: start-first
+      failure_action: pause
+      delay: 10s
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+    resources:
+      limits:
+        cpus: '0.3'
+        memory: 256M
+      reservations:
+        cpus: '0.05'
+        memory: 64M
     ports:
       - target: 80
         published: 80
@@ -78,23 +104,25 @@ services:
       - app
     networks:
       - app-network
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-        delay: 1h
-        max_attempts: 3
-      update_config:
-        parallelism: 1
-        order: start-first
-        failure_action: pause
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
 
 networks:
   app-network:
     driver: overlay
+    driver_opts:
+      encrypted: "true"
 
 volumes:
   logs:
+    driver: local
   data:
+    driver: local
   public:
+    driver: local
   dist:
+    driver: local

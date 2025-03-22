@@ -7,6 +7,7 @@ dist-ssr
 *.local
 secrets
 public/env-config.js
+dist/env-config.js
 
 # Environment files
 .env
