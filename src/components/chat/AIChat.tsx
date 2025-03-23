@@ -38,10 +38,8 @@ export function AIChat() {
   const previousPath = useExamStore(state => state.previousPath);
   const [error, setError] = useState<string | null>(null);
 
-  // Use process.env
-  const aiService = useRef(
-    new AIService(ragContext)
-  );
+  // Create AI service
+  const aiService = useRef(new AIService(ragContext));
 
   useEffect(() => {
     if (location.state?.query) {
@@ -51,8 +49,13 @@ export function AIChat() {
   }, [location.state]);
 
   const handleModelChange = async (modelId: string) => {
-    await aiService.current.setModel(modelId);
-    setSelectedModel(modelId);
+    try {
+      await aiService.current.setModel(modelId);
+      setSelectedModel(modelId);
+    } catch (error) {
+      console.error('Error changing model:', error);
+      setError(error instanceof Error ? error.message : 'Failed to change model');
+    }
   };
 
   const sendMessage = async (customInput?: string) => {
@@ -66,6 +69,7 @@ export function AIChat() {
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await aiService.current.getExplanation(messageToSend);
@@ -87,7 +91,7 @@ export function AIChat() {
         ...newMessages,
         {
           role: 'assistant',
-          content: errorMessage,
+          content: `Sorry, I encountered an error: ${errorMessage}. Please try again later.`,
         },
       ]);
     } finally {
@@ -145,6 +149,11 @@ export function AIChat() {
         </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            {error}
+          </div>
+        )}
         {messages.map((message, index) => (
           <div
             key={index}

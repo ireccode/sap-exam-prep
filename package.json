@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsx scripts/generate-env-config.ts && tsc && vite build && cp public/env-config.js dist/",
+    "build": "tsc && vite build && npm run copy-files",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "encrypt": "node --loader ts-node/esm scripts/encryptQuestionBanks.ts",
@@ -14,7 +14,11 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "deploy:functions": "bash scripts/deploy-edge-functions.sh",
+    "start": "node server.js",
+    "verify-build": "node scripts/verify-build.js",
+    "copy-files": "cp -r public/*.encrypted dist/ && cp server.js dist/ && cp public/_redirects dist/ 2>/dev/null || :"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -31,8 +35,10 @@
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "compression": "^1.7.4",
     "crypto-browserify": "^3.12.0",
     "express": "^4.18.3",
+    "helmet": "^7.1.0",
     "lucide-react": "^0.344.0",
     "mongodb": "^6.4.0",
     "openai": "^4.28.4",

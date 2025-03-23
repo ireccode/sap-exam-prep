@@ -35,7 +35,7 @@ export function MiniExam() {
 
   useEffect(() => {
     const loadQuestions = async () => {
-      await questionBank.initialize();
+      await questionBank.loadQuestions(isPremium);
     };
     loadQuestions();
   }, []);

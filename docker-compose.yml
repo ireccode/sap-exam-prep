@@ -16,8 +16,8 @@ services:
       - 5173
     env_file: ./.env
     environment:
-      - NODE_ENV=development
-      - VIRTUAL_PROTO=https
+      - PORT=5173
+      - NODE_ENV=production
     volumes:
       - logs:/var/log/nginx
       - data:/app/data
@@ -25,7 +25,7 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt
       - dist:/app/dist
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -16,6 +16,12 @@ RUN npm run build
 # Debug: Show copied files after build
 RUN echo "Files in dist directory:" && ls -la dist/
 
+# Copy server.js file
+COPY server.js .
+
+# Install production dependencies for Express server
+RUN npm install --production compression express helmet
+
 # Vite app production stage
 FROM node:20-alpine as app
 
@@ -24,6 +30,8 @@ WORKDIR /app
 # Copy built files and necessary configs
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/server.js /app/server.js
+COPY --from=build /app/node_modules /app/node_modules
 
 # Create entrypoint script
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
@@ -35,12 +43,11 @@ RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo '  echo "Warning: Production environment file not found at /app/.env"' >> /app/entrypoint.sh && \
     echo '  echo "Using default environment variables"' >> /app/entrypoint.sh && \
     echo 'fi' >> /app/entrypoint.sh && \
-    echo 'exec serve -s dist -l tcp://0.0.0.0:5173' >> /app/entrypoint.sh && \
+    echo 'exec node server.js' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # Install dependencies and serve
-RUN npm install && \
-    npm install -g serve
+RUN npm install
 
 # Create directory for data and logs
 RUN mkdir -p /app/data \
@@ -82,3 +89,6 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
 
 EXPOSE 80 443
 CMD ["/docker-entrypoint.sh"]
+
+# Start the Express server instead of using a static file server
+CMD ["node", "server.js"]

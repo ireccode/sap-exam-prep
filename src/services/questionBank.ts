@@ -8,70 +8,131 @@ export interface QuestionFilters {
   difficulty?: number;
 }
 
-class QuestionBankService {
+export class QuestionBankService {
+  private static instance: QuestionBankService;
   private basicQuestions: Question[] = [];
   private premiumQuestions: Question[] = [];
-  private initialized = false;
+  private isLoading = false;
+  private hasLoaded = false;
   private encryptionService: EncryptionService;
 
-  constructor() {
+  private constructor() {
     this.encryptionService = EncryptionService.getInstance();
   }
 
-  async initialize() {
-    if (this.initialized) return;
-    
+  public static getInstance(): QuestionBankService {
+    if (!QuestionBankService.instance) {
+      QuestionBankService.instance = new QuestionBankService();
+    }
+    return QuestionBankService.instance;
+  }
+
+  public async loadQuestions(isPremium: boolean = false): Promise<void> {
+    if (this.isLoading) return;
+    this.isLoading = true;
+
     try {
-      // Load and decrypt basic questions
-      const basicResponse = await fetch('/btp_query_bank.encrypted');
-      if (!basicResponse.ok) {
-        throw new Error('Failed to load basic questions');
-      }
-      const encryptedBasicData = await basicResponse.text();
-      
-      try {
-        const decryptedBasicQuestions = await this.encryptionService.decryptQuestions(encryptedBasicData, true);
-        this.basicQuestions = decryptedBasicQuestions.map(q => ({
-          ...q,
-          isPremium: false
-        }));
-        console.log('Successfully loaded and decrypted basic questions');
-      } catch (decryptError) {
-        console.error('Failed to decrypt basic questions:', decryptError);
-        this.basicQuestions = [];
+      // Load basic questions if not already loaded
+      if (this.basicQuestions.length === 0) {
+        try {
+          const basicEncryptedData = await this.fetchEncryptedData('/basic_btp_query_bank.encrypted');
+          this.basicQuestions = await this.encryptionService.decryptQuestions(basicEncryptedData, false);
+        } catch (error) {
+          console.error('Error loading basic questions:', error);
+          
+          // Use sample questions as fallback
+          console.log('Using sample basic questions as fallback');
+          this.basicQuestions = this.getSampleBasicQuestions();
+        }
       }
 
-      // Load and decrypt premium questions
-      const premiumResponse = await fetch('/premium_btp_query_bank.encrypted');
-      if (!premiumResponse.ok) {
-        throw new Error('Failed to load premium questions');
-      }
-      const encryptedPremiumData = await premiumResponse.text();
-      
-      try {
-        const decryptedPremiumQuestions = await this.encryptionService.decryptQuestions(encryptedPremiumData, false);
-        this.premiumQuestions = decryptedPremiumQuestions.map(q => ({
-          ...q,
-          isPremium: true
-        }));
-        console.log('Successfully loaded and decrypted premium questions');
-      } catch (decryptError) {
-        console.error('Failed to decrypt premium questions:', decryptError);
-        this.premiumQuestions = [];
+      // Load premium questions if user is premium and not already loaded
+      if (isPremium && this.premiumQuestions.length === 0) {
+        try {
+          const premiumEncryptedData = await this.fetchEncryptedData('/premium_btp_query_bank.encrypted');
+          this.premiumQuestions = await this.encryptionService.decryptQuestions(premiumEncryptedData, true);
+        } catch (error) {
+          console.error('Error loading premium questions:', error);
+          
+          // Use sample questions as fallback
+          console.log('Using sample premium questions as fallback');
+          this.premiumQuestions = this.getSamplePremiumQuestions();
+        }
       }
 
-      this.initialized = true;
+      this.hasLoaded = true;
     } catch (error) {
-      console.error('Failed to load questions:', error);
-      this.basicQuestions = [];
-      this.premiumQuestions = [];
-      throw error;
+      console.error('Error loading questions:', error);
+      
+      // Even if there's an error, set some sample questions so the app can function
+      if (this.basicQuestions.length === 0) {
+        this.basicQuestions = this.getSampleBasicQuestions();
+      }
+      
+      if (isPremium && this.premiumQuestions.length === 0) {
+        this.premiumQuestions = this.getSamplePremiumQuestions();
+      }
+      
+      this.hasLoaded = true;
+    } finally {
+      this.isLoading = false;
     }
   }
 
+  private async fetchEncryptedData(path: string): Promise<string> {
+    try {
+      // Ensure we're using the correct path
+      const fullPath = path.startsWith('/') ? path : `/${path}`;
+      console.log(`Fetching encrypted data from ${fullPath}`);
+      
+      const response = await fetch(fullPath);
+      
+      // Check content type for HTML
+      const contentType = response.headers.get('content-type');
+      console.log(`Content type for ${fullPath}: ${contentType}`);
+      
+      if (contentType && contentType.includes('text/html')) {
+        console.error(`Received HTML content type from ${fullPath}`);
+        throw new Error('Received HTML instead of encrypted data');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch encrypted data: ${response.statusText}`);
+      }
+      
+      const text = await response.text();
+      
+      // Check if content looks like HTML
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        console.error(`Received HTML content from ${fullPath}`);
+        throw new Error('Received HTML instead of encrypted data');
+      }
+      
+      // Clean the data
+      const cleanedData = text.trim().replace(/\s/g, '');
+      
+      return cleanedData;
+    } catch (error) {
+      console.error(`Error fetching encrypted data from ${path}:`, error);
+      throw error; // Propagate the original error
+    }
+  }
+
+  public getBasicQuestions(): Question[] {
+    return this.basicQuestions;
+  }
+
+  public getPremiumQuestions(): Question[] {
+    return this.premiumQuestions;
+  }
+
+  public isQuestionsLoaded(): boolean {
+    return this.hasLoaded;
+  }
+
   getAllQuestions(filters: QuestionFilters = {}): Question[] {
-    if (!this.initialized) {
-      console.warn('QuestionBank not initialized. Call initialize() first.');
+    if (!this.hasLoaded) {
+      console.warn('QuestionBank not loaded. Call loadQuestions() first.');
       return [];
     }
 
@@ -149,6 +210,101 @@ class QuestionBankService {
     }
     return shuffled;
   }
+
+  // Sample questions as a fallback
+  private getSampleBasicQuestions(): Question[] {
+    return [
+      {
+        id: 'sample1',
+        question: 'What is SAP BTP?',
+        options: [
+          'SAP Business Technology Platform',
+          'SAP Business Transaction Processing',
+          'SAP Business Transformation Platform',
+          'SAP Business Technical Platform'
+        ],
+        correctAnswer: 0,
+        explanation: 'SAP BTP stands for SAP Business Technology Platform.',
+        category: 'BTP Basics',
+        difficulty: 1
+      },
+      {
+        id: 'sample2',
+        question: 'Which of the following is a core capability of SAP BTP?',
+        options: [
+          'Physical hardware management',
+          'On-premise database administration',
+          'Application development and integration',
+          'Network infrastructure setup'
+        ],
+        correctAnswer: 2,
+        explanation: 'Application development and integration is a core capability of SAP BTP.',
+        category: 'BTP Capabilities',
+        difficulty: 1
+      },
+      {
+        id: 'sample3',
+        question: 'What is the primary deployment model for SAP BTP?',
+        options: [
+          'On-premise only',
+          'Cloud only',
+          'Hybrid cloud',
+          'Edge computing'
+        ],
+        correctAnswer: 2,
+        explanation: 'SAP BTP supports a hybrid cloud deployment model.',
+        category: 'BTP Deployment',
+        difficulty: 1
+      }
+    ];
+  }
+
+  private getSamplePremiumQuestions(): Question[] {
+    return [
+      {
+        id: 'premium1',
+        question: 'Which of the following is a premium feature in SAP BTP?',
+        options: [
+          'Basic authentication',
+          'Advanced analytics',
+          'Simple storage',
+          'Standard integration'
+        ],
+        correctAnswer: 1,
+        explanation: 'Advanced analytics is a premium feature in SAP BTP.',
+        category: 'Premium Features',
+        difficulty: 2
+      },
+      {
+        id: 'premium2',
+        question: 'What is SAP HANA Cloud?',
+        options: [
+          'A physical server hosting solution',
+          'An in-memory database as a service',
+          'A network security service',
+          'A user interface framework'
+        ],
+        correctAnswer: 1,
+        explanation: 'SAP HANA Cloud is an in-memory database as a service.',
+        category: 'SAP HANA',
+        difficulty: 2
+      },
+      {
+        id: 'premium3',
+        question: 'Which of these is a key benefit of using SAP Integration Suite?',
+        options: [
+          'Hardware cost reduction',
+          'End-to-end integration across applications',
+          'Physical server management',
+          'Network infrastructure setup'
+        ],
+        correctAnswer: 1,
+        explanation: 'End-to-end integration across applications is a key benefit of SAP Integration Suite.',
+        category: 'Integration',
+        difficulty: 2
+      }
+    ];
+  }
 }
 
-export const questionBank = new QuestionBankService();
+export const questionBank = QuestionBankService.getInstance();

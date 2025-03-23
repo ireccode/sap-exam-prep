@@ -54,11 +54,16 @@ export default defineConfig({
         target: 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/chat/, ''),
-      }
-    }
+      },
+      fs: {
+        // Allow serving files from one level up to the project root
+        allow: ['..'],
+      },
+    },
   },
   build: {
     assetsDir: 'assets',
+    assetsInlineLimit: 0, // Don't inline any assets
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -77,9 +82,7 @@ export default defineConfig({
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
-        manualChunks: {
-          vendor: ['react', 'react-dom', '@supabase/supabase-js'],
-        },
+        manualChunks: undefined,
       },
     },
     copyPublicDir: true,
@@ -105,4 +108,5 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     global: 'globalThis',
   },
+  assetsInclude: ['**/*.encrypted'],
 });

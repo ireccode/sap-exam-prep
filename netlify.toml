@@ -15,4 +15,9 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Authorization, X-Client-Info, apikey, Content-Type, HTTP-Referer, X-Title"
-    Content-Security-Policy = "default-src 'self' https://cwscaerzmixftirytvwo.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cwscaerzmixftirytvwo.supabase.co wss://cwscaerzmixftirytvwo.supabase.co https://openrouter.ai;" 
+    Content-Security-Policy = "default-src 'self' https://cwscaerzmixftirytvwo.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cwscaerzmixftirytvwo.supabase.co wss://cwscaerzmixftirytvwo.supabase.co https://openrouter.ai;"
+
+[[headers]]
+  for = "*.encrypted"
+  [headers.values]
+    Content-Type = "application/octet-stream" 

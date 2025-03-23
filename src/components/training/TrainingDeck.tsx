@@ -38,7 +38,7 @@ export function TrainingDeck() {
 
   useEffect(() => {
     const initializeCategories = async () => {
-      await questionBank.initialize();
+      await questionBank.loadQuestions(isPremium);
       
       // Get categories based on user's subscription status
       const allCategories = questionBank.getCategories({ isPremium });
