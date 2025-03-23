@@ -1,17 +1,28 @@
 #!/bin/sh
+set -e
 
-# Check if certificates exist by following symlinks
-CERT_DIR="/etc/letsencrypt/live/${NGINX_HOST}"
-if [ -L "$CERT_DIR/privkey.pem" ] && [ -L "$CERT_DIR/fullchain.pem" ]; then
-    PRIV_KEY=$(readlink -f "$CERT_DIR/privkey.pem")
-    FULL_CHAIN=$(readlink -f "$CERT_DIR/fullchain.pem")
-    if [ -f "$PRIV_KEY" ] && [ -f "$FULL_CHAIN" ]; then
-        echo "Certificates exist for ${NGINX_HOST}"
-        exit 0
-    fi
+# Check if certificates exist
+if [ ! -d "/etc/letsencrypt/live/localhost" ]; then
+    echo "Certificates not found. Generating self-signed certificates..."
+    
+    # Create directory for certificates
+    mkdir -p /etc/letsencrypt/live/localhost
+    
+    # Generate self-signed certificate
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/letsencrypt/live/localhost/privkey.pem \
+        -out /etc/letsencrypt/live/localhost/fullchain.pem \
+        -subj "/CN=localhost" \
+        -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+    
+    echo "Self-signed certificates generated successfully."
+else
+    echo "Certificates found. Using existing certificates."
 fi
 
-#echo "Certificates missing for ${NGINX_HOST}, generating with certbot..."
-#certbot --nginx -d ${NGINX_HOST} --email ${NGINX_CERT_EMAIL} --agree-tos --non-interactive
+# Set proper permissions
+chmod -R 755 /etc/letsencrypt/live/localhost
+chmod 644 /etc/letsencrypt/live/localhost/fullchain.pem
+chmod 600 /etc/letsencrypt/live/localhost/privkey.pem
 
-#echo "Certificate initialization complete" 
+echo "Certificate setup completed." 
