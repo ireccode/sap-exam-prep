@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc && vite build && npm run copy-files",
     "do-build": "npm install --include=dev && npm run build",
+    "do-deploy": "npm run do-build && mkdir -p dist/.do && cp -r .do/* dist/.do/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "encrypt": "node --loader ts-node/esm scripts/encryptQuestionBanks.ts",
@@ -22,7 +23,7 @@
     "deploy:functions": "bash scripts/deploy-edge-functions.sh",
     "start": "node server.js",
     "verify-build": "node scripts/verify-build.js",
-    "copy-files": "cp -r public/*.encrypted dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp _static.json dist/ 2>/dev/null || :"
+    "copy-files": "cp -r public/*.encrypted dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp _static.json dist/ && mkdir -p dist/.do && cp -r .do/* dist/.do/ 2>/dev/null || :"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

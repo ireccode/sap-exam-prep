@@ -5,7 +5,7 @@ spec:
     github:
       repo: ireccode/sap-exam-prep
       branch: main
-    build_command: npm run do-build
+    build_command: npm run do-deploy
     output_dir: dist
     environment_slug: node-js
     env:
