@@ -2,7 +2,7 @@
 server {
     listen 80;
     listen [::]:80;
-    server_name examprep.techtreasuretrove.in localhost;
+    server_name ${VITE_TARGET_DOMAIN} localhost;
 
     # ACME challenge location
     location /.well-known/acme-challenge/ {
@@ -28,7 +28,7 @@ server {
     listen 443 ssl;
     listen [::]:443 ssl;
     http2 on;
-    server_name examprep.techtreasuretrove.in localhost;
+    server_name ${VITE_TARGET_DOMAIN} localhost;
 
     root /usr/share/nginx/html;
     index index.html;
@@ -119,5 +119,5 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self' ${VITE_SUPABASE_URL} https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ${VITE_SUPABASE_URL} wss://${SUPABASE_HOST} https://openrouter.ai;" always;
+    add_header Content-Security-Policy "default-src 'self' ${VITE_SUPABASE_URL} https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ${VITE_SUPABASE_URL} wss://${SUPABASE_HOST} https://openrouter.ai https://${VITE_TARGET_DOMAIN};" always;
 } 

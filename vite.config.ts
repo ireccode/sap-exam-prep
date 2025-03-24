@@ -40,6 +40,14 @@ const copyPublicFiles = (): Plugin => ({
   }
 });
 
+// Get environment variables with fallbacks
+const getEnvVar = (key: string, defaultValue: string): string => {
+  return process.env[key] || defaultValue;
+};
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL', 'https://cwscaerzmixftirytvwo.supabase.co');
+const targetDomain = getEnvVar('VITE_TARGET_DOMAIN', 'examprep.techtreasuretrove.in');
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -47,16 +55,19 @@ export default defineConfig({
     copyPublicFiles()
   ],
   server: {
-    host: '0.0.0.0', // Allow external access
+    host: true,
     port: 5173,
     proxy: {
-      '/api/chat': {
-        target: 'https://cwscaerzmixftirytvwo.supabase.co/functions/v1/chat',
+      '/functions/v1': {
+        target: supabaseUrl,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/chat/, ''),
+        secure: true,
+        headers: {
+          'X-Title': 'SAP Architect Exam Prep',
+          'HTTP-Referer': `https://${targetDomain}`,
+        },
       },
       fs: {
-        // Allow serving files from one level up to the project root
         allow: ['..'],
       },
     },
@@ -64,6 +75,9 @@ export default defineConfig({
   build: {
     assetsDir: 'assets',
     assetsInlineLimit: 0, // Don't inline any assets
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -82,15 +96,15 @@ export default defineConfig({
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
-        manualChunks: undefined,
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
       },
     },
     copyPublicDir: true,
-    outDir: 'dist',
-    sourcemap: false, // Disable sourcemaps for smaller build size
   },
   optimizeDeps: {
-    include: ['@supabase/supabase-js', 'crypto-browserify', 'stream-browserify', 'buffer', 'util', 'process'],
+    include: ['@supabase/supabase-js', 'crypto-browserify', 'stream-browserify', 'buffer', 'util', 'process', 'react', 'react-dom', 'react-router-dom'],
     exclude: ['crypto'],
   },
   resolve: {

@@ -47,6 +47,7 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://cwscaerzmixftirytvwo.supabase.co}
+      - VITE_TARGET_DOMAIN=${VITE_TARGET_DOMAIN:-examprep.techtreasuretrove.in}
     volumes:
       - ./logs:/var/log/nginx
       - ./data:/app/data

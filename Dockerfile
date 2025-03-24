@@ -46,6 +46,7 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo '# Set default values for environment variables' >> /docker-entrypoint.sh && \
     echo 'export VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-https://cwscaerzmixftirytvwo.supabase.co}' >> /docker-entrypoint.sh && \
     echo 'export SUPABASE_HOST=$(echo ${VITE_SUPABASE_URL:-https://cwscaerzmixftirytvwo.supabase.co} | sed "s/https:\/\///")' >> /docker-entrypoint.sh && \
+    echo 'export VITE_TARGET_DOMAIN=${VITE_TARGET_DOMAIN:-examprep.techtreasuretrove.in}' >> /docker-entrypoint.sh && \
     echo '# Load environment variables from .env file if it exists' >> /docker-entrypoint.sh && \
     echo 'if [ -f "/.env" ]; then' >> /docker-entrypoint.sh && \
     echo '  echo "Loading environment variables from /.env"' >> /docker-entrypoint.sh && \

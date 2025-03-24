@@ -9,8 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  APP_IMAGE_NAME: ireccode/sap-exam-prep
-  NGINX_IMAGE_NAME: ireccode/sap-exam-prep-nginx
+  IMAGE_NAME: ireccode/sap-exam-prep
 
 jobs:
   build-and-push:
@@ -55,43 +54,32 @@ jobs:
           # API Keys (server-side only)
           OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
           WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-          
+
+          VITE_TARGET_DOMAIN=${{ secrets.VITE_TARGET_DOMAIN }}
           # Build Information
           GIT_COMMIT_HASH=${{ github.sha }}
           EOF
 
-      # Extract metadata for app image
-      - name: Extract metadata for app image
-        id: meta-app
+      # Extract metadata for Docker image
+      - name: Extract metadata for Docker image
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha,format=long
             type=raw,value=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      # Extract metadata for nginx image
-      - name: Extract metadata for nginx image
-        id: meta-nginx
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.NGINX_IMAGE_NAME }}
-          tags: |
-            type=sha,format=long
-            type=raw,value=${{ github.sha }}
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      # Build and push app image
-      - name: Build and push app Docker image
+      # Build and push Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          target: app
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-app.outputs.tags }}
-          labels: ${{ steps.meta-app.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -104,31 +92,7 @@ jobs:
             VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
             VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
             VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
-          secret-files: |
-            "env_file=.env.production"
-
-      # Build and push nginx image
-      - name: Build and push nginx Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          target: nginx
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-nginx.outputs.tags }}
-          labels: ${{ steps.meta-nginx.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            GIT_COMMIT_HASH=${{ github.sha }}
-            BASIC_ENCRYPTION_KEY=${{ secrets.BASIC_ENCRYPTION_KEY }}
-            PREMIUM_ENCRYPTION_KEY=${{ secrets.PREMIUM_ENCRYPTION_KEY }}
-            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
-            WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-            VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
-            VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-            VITE_STRIPE_PREMIUM_PRICE_ID=${{ secrets.VITE_STRIPE_PREMIUM_PRICE_ID }}
+            VITE_TARGET_DOMAIN=${{ secrets.VITE_TARGET_DOMAIN }}
           secret-files: |
             "env_file=.env.production"
 
