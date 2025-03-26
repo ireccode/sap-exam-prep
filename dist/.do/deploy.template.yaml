@@ -1,0 +1,36 @@
+spec:
+  name: sap-exam-prep
+  static_sites:
+  - name: sap-exam-prep
+    github:
+      repo: ireccode/sap-exam-prep
+      branch: main
+    build_command: npm run do-deploy
+    output_dir: dist
+    environment_slug: node-js
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_TARGET_DOMAIN
+        value: ${VITE_TARGET_DOMAIN}
+      - key: VITE_SUPABASE_URL
+        value: ${VITE_SUPABASE_URL}
+    routes:
+      - path: /
+    cors:
+      allow_origins:
+        - regex: .*
+      allow_methods:
+        - GET
+        - HEAD
+        - OPTIONS
+      allow_headers:
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+        - X-Title
+        - HTTP-Referer
+      expose_headers:
+        - Content-Length
+        - Content-Range
+      max_age: 86400 

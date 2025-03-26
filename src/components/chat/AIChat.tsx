@@ -129,7 +129,7 @@ export function AIChat() {
           >
             {MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {`${model.name} (${model.provider} - $${model.costPer1kTokens}/1k tokens)`}
+                {model.id}
               </option>
             ))}
           </select>

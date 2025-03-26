@@ -19,7 +19,7 @@ const encryptionKey: string = ENCRYPTION_KEY;
 async function encryptBasicContent() {
   try {
     // Read the basic questions file
-    const basicQuestionsPath = path.join(process.cwd(), 'public', 'btp_query_bank.json');
+    const basicQuestionsPath = path.join(process.cwd(), 'public', 'basic_btp_query_bank.json');
     const basicQuestionsRaw = fs.readFileSync(basicQuestionsPath, 'utf-8');
     const basicQuestions = JSON.parse(basicQuestionsRaw).questions;
 
@@ -61,7 +61,7 @@ async function encryptBasicContent() {
     const base64Data = combinedData.toString('base64');
 
     // Write the encrypted content to a new file
-    const encryptedFilePath = path.join(process.cwd(), 'public', 'btp_query_bank.encrypted');
+    const encryptedFilePath = path.join(process.cwd(), 'public', 'basic_btp_query_bank.encrypted');
     fs.writeFileSync(encryptedFilePath, base64Data);
 
     console.log('Successfully encrypted basic content');

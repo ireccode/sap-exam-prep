@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Prepare for your SAP Architect Certification with our comprehensive exam preparation resources. Expert guidance, study materials, and practice tests to help you succeed.">
     <meta name="keywords" content="SAP Architect Certification, SAP exam prep, SAP certification training, SAP Architect career, SAP certification exam">
     <title>SAP Architect Certification Exam Preparation | Expert Training</title>
     
     <!-- Preload critical assets -->
-    <link rel="preload" href="css/main.min.css" as="style">
-    <link rel="preload" href="js/main.min.js" as="script">
+    <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="js/main.js" as="script">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/main.min.css">
+    <link rel="stylesheet" href="css/styles.css">
     
     <!-- Schema.org markup -->
     <script type="application/ld+json">
@@ -33,38 +34,17 @@
         }
     }
     </script>
-    
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR-GA-ID"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'YOUR-GA-ID');
-
-        // Conversion tracking for CTAs
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const btnText = btn.textContent.trim();
-                gtag('event', 'click', {
-                    'event_category': 'CTA',
-                    'event_label': btnText
-                });
-            });
-        });
-    </script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Header -->
     <header class="header">
-        <nav class="nav">
+        <nav class="nav container">
             <div class="nav__logo">
                 <img src="images/logo.png" alt="SAP Architect Exam Prep Logo" width="50" height="50">
             </div>
             <ul class="nav__menu">
                 <li><a href="#benefits">Benefits</a></li>
                 <li><a href="#features">Features</a></li>
-               <!-- <li><a href="#testimonials">Testimonials</a></li> -->
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#faq">FAQ</a></li>
             </ul>
@@ -81,6 +61,12 @@
                 <button class="btn btn--primary" onclick="location.href='https://sap-architect-exam-prep.netlify.app/login'">Start For Free</button>
                 <button class="btn btn--secondary" onclick="location.href='#features'">Learn More</button>
             </div>
+        </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
         </div>
     </section>
 
@@ -103,17 +89,31 @@
         <div class="container">
             <h2>Introducing SAP Architect Exam Prep: <br>Your AI-Powered Study Companion</h2>
             <p>Experience personalized learning with AI-driven insights and adaptive analytics. Our platform offers tailored study plans, real-time feedback, and comprehensive mock exams to ensure your success.</p>
-            <ul style="padding-left: var(--spacing-lg);">
-                <li>Structured learning paths</li>
-                <li>AI-powered explanations</li>
-                <li>Adaptive analytics</li>
-                <li><ul>Mock exams</li>
-                    <li><b>SAP Certified Professional - Solution Architect - SAP BTP (P_BTPA_2408)</b></li>
-                    <li><b>SAP Certified Associate - Solution Architect - SAP Customer Experience (C_C4HCX_24)</b> - soon</li>
-                    <li><b>SAP Certified Professional - SAP Enterprise Architect (P_SAPEA_2023)</b> - soon</li>
+            <ul>
+                <li>Structured learning paths</li>                
+                <li>Adaptive analytics</li>                
+                <li>AI-powered explanations
+                    <ul>
+                        <li>Providing in-depth information from official SAP documentation.</li>
+                        <li>Illustrating SAP scenarios in practice.</li>
+                        <li>Highlighting crucial points for certification.</li>
                     </ul>
-                <li>Instant access to SAP documentation</li>
+                </li>
+                <li>Mock exams
+                    <ul>
+                        <li><b>SAP Certified Professional - Solution Architect - SAP BTP (P_BTPA_2408)</b></li>
+                        <li><b>SAP Certified Associate - Solution Architect - SAP Customer Experience (C_C4HCX_24)</b> - soon</li>
+                        <li><b>SAP Certified Professional - SAP Enterprise Architect (P_SAPEA_2023)</b> - soon</li>
+                    </ul>
+                </li>
+
             </ul>
+        </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#f8f9fa" fill-opacity="1" d="M0,160L48,165.3C96,171,192,181,288,165.3C384,149,480,107,576,85.3C672,64,768,64,864,85.3C960,107,1056,149,1152,160C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
         </div>
     </section>
 
@@ -124,11 +124,11 @@
             <div class="benefits__grid">
                 <div class="benefit">
                     <h3>Efficient preparation tools</h3>
-                    <p>Structured learning paths and mock exams build confidence.
+                    <p>Structured learning paths and mock exams build confidence.</p>
                 </div>
                 <div class="benefit">
                     <h3>Personalized learning experience</h3>
-                    <p>Adaptive analytics target weaknesses and reinforce strengths.</p></p>
+                    <p>Adaptive analytics target weaknesses and reinforce strengths.</p>
                 </div>
                 <div class="benefit">
                     <h3>AI-powered assistance</h3>
@@ -140,7 +140,7 @@
                 </div>
                 <div class="benefit">
                     <h3>Increased Success Rates</h3>
-                    <p>EEfficient preparation tools with a 99% pass rate.</p>
+                    <p>Efficient preparation tools with a 99% pass rate.</p>
                 </div>
                 <div class="benefit">
                     <h3>Career growth support</h3>
@@ -148,33 +148,65 @@
                 </div>
             </div>
         </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#b2ebc2" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,170.7C384,160,480,160,576,144C672,128,768,96,864,90.7C960,85,1056,107,1152,112C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+        </div>
     </section>
 
-    <!-- Features Section -->
+    <!-- Features Section with Carousel -->
     <section class="features" id="features">
         <div class="container">
             <h2>Platform Features</h2>
-            <div class="features__grid">
-                <div class="feature">
-                    <h3>AI Explanations</h3>
-                    <img src="images/arch-exam-prep-part05.png" alt="AI Explanations">
-                    <p>Get detailed explanations powered by AI to enhance your understanding.</p>
+            <div class="carousel-container">
+                <div class="carousel-slide">
+                    <div class="feature">
+                        <h3>AI Explanations</h3>
+                        <img src="images/arch-exam-prep-part05.png" alt="AI Explanations">
+                        <p>Get detailed explanations powered by AI with in-depth information from official SAP documentation to enhance your understanding.</p>
+                    </div>
                 </div>
-                <div class="feature">
-                    <h3>Adaptive Analytics</h3>
-                    <img src="images/arch-exam-prep-part06.png" alt="Adaptive Analytics">
-                    <p>Track your progress with adaptive analytics tailored to your learning style.</p>
+                <div class="carousel-slide">
+                    <div class="feature">
+                        <h3>Adaptive Analytics</h3>
+                        <img src="images/arch-exam-prep-part06.png" alt="Adaptive Analytics">
+                        <p>Track your progress with adaptive analytics tailored to your learning style.</p>
+                    </div>
                 </div>
-                <div class="feature">
-                    <h3>Mock Exams</h3>
-                    <img src="images/arch-exam-prep-part04.png" alt="Mock Exams">
-                    <p>Prepare with comprehensive mock exams that simulate the real test environment.</p>
+                <div class="carousel-slide">
+                    <div class="feature">
+                        <h3>Real use case questions</h3>
+                        <img src="images/arch-exam-prep-part03.png" alt="Real use case questions">                                                
+                        <p>Concentrate on a particular query category, accompanied by a use case demonstrating real-world application of the concept.</p>
+                    </div> 
+                </div>                   
+                <div class="carousel-slide">
+                    <div class="feature">
+                        <h3>Premium Mock Exams</h3>
+                        <img src="images/arch-exam-prep-part04.png" alt="Premium Mock Exams">
+                        <p>Prepare with comprehensive mock exams that simulate the real test environment.</p>
+                    </div>
                 </div>
-                <div class="feature">
-                    <h3>Instant Access</h3>
-                    <p>Access SAP documentation instantly to support your learning journey.</p>
+                </div>
+                <!-- Navigation buttons -->
+                <button class="carousel-btn prev-btn">&lt;</button>
+                <button class="carousel-btn next-btn">&gt;</button>
+                <!-- Dots for navigation -->
+                <div class="carousel-dots">
+                    <span class="dot active" data-slide="0"></span>
+                    <span class="dot" data-slide="1"></span>
+                    <span class="dot" data-slide="2"></span>
+                    <span class="dot" data-slide="3"></span>
                 </div>
             </div>
+        </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#ffffff" fill-opacity="1" d="M0,32L48,37.3C96,43,192,53,288,80C384,107,480,149,576,144C672,139,768,85,864,69.3C960,53,1056,75,1152,106.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
         </div>
     </section>
 
@@ -209,6 +241,12 @@
                 </div>
             </div>
         </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#b2ebc2" fill-opacity="1" d="M0,64L48,80C96,96,192,128,288,122.7C384,117,480,75,576,74.7C672,75,768,117,864,122.7C960,128,1056,96,1152,106.7C1248,117,1344,171,1392,197.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+        </div>
     </section>
 
     <!-- FAQ Section -->
@@ -218,7 +256,12 @@
             <div class="faq__grid">
                 <details class="faq__item">
                     <summary>How does the AI-powered learning work?</summary>
-                    <p>The AI analyzes your progress and adapts the learning path to suit your needs, which ensures efficient study sessions. By focusing on weak areas and providing a mix of questions, it enhances the learning experience, ensuring that users are not only practicing but also improving in their areas of difficulty. This adaptive approach is crucial for effective learning, as it allows users to engage with content that is most relevant to their progress and goals.</p>
+                        <ul>
+                            <li>Expanding Concepts: Providing in-depth information from official SAP documentation.</li>
+                            <li>Examples: Illustrating SAP BTP scenarios in practice.</li>
+                            <li>Exam Focus: Highlighting crucial points for certification.</li>
+                            <li>Related Services: Explaining SAP BTP services, integration points, and best practices.</li>
+                        </ul>
                 </details>
                 <details class="faq__item">
                     <summary>What is included in the Premium plan?</summary>
@@ -254,7 +297,7 @@
                 </details>
                 <details class="faq__item">
                     <summary>I have a question that isn't answered here. How can I get help?</summary>
-                    <p>Our support team is available via email and live chat to answer any questions you may have. We are here to help guide your preparation journey.</p>
+                    <p>Our support team is available via email to answer any questions you may have. We are here to help guide your preparation journey.</p>
                 </details>
             </div>
         </div>
@@ -266,32 +309,29 @@
             <h2>Ready to Start Your Journey?</h2>
             <button class="btn btn--primary" onclick="location.href='https://sap-architect-exam-prep.netlify.app/login'">Start For Free</button>
         </div>
+        <!-- Wave Effect -->
+        <div class="wave-container">
+            <svg class="wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#ffffff" fill-opacity="1" d="M0,128L48,149.3C96,171,192,213,288,213.3C384,213,480,171,576,170.7C672,171,768,213,864,208C960,203,1056,149,1152,149.3C1248,149,1344,203,1392,229.3L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            </svg>
+        </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="footer__grid">
-                <div class="footer__info">
-                    <img src="images/logo.png" alt="SAP Architect Exam Prep Logo" width="50" height="50">
-                    <p>Your path to becoming a certified SAP Architect starts here.</p>
-                </div>
+            <div class="footer__grid">            
                 <div class="footer__links">
-                    <h4>Quick Links</h4>
                     <ul>
                         <li><a href="#benefits">Benefits</a></li>
-                        <li><a href="#Certifications">Certifications</a></li>
+                        <li><a href="#features">Features</a></li>
                         <li><a href="#pricing">Pricing</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="footer__social">
                     <h4>Follow Us</h4>
                     <div class="social__icons">
                         <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
                     </div>
                 </div>
             </div>
@@ -307,26 +347,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/main.min.js" defer></script>
-    <script src="https://kit.fontawesome.com/YOUR-KIT-CODE.js" crossorigin="anonymous"></script>
+    <script src="js/main.js" defer></script>
+    <script src="https://kit.fontawesome.com/7f28217f29.js" crossorigin="anonymous"></script>
+  </body>
+</html>
 
-    <!-- SEO Optimizations -->
-    <meta name="description" content="SAP Architect Exam Prep: Comprehensive resources for SAP Architect Certification Prep, AI-powered SAP learning, and SAP certification study app.">
-    <meta name="keywords" content="SAP BTP (P_BTPA_2408), SAP Customer Experience (C_C4HCX_24), SAP Enterprise Architect (P_SAPEA_2023), SAP Architect Exam Prep, SAP Architect Certification Prep, SAP exam preparation, AI-powered SAP learning, SAP certification study app">
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "SAP Architect Exam Prep",
-        "description": "AI-powered SAP learning platform for SAP Architect Certification Prep.",
-        "applicationCategory": "Education",
-        "operatingSystem": "All",
-        "offers": {
-            "@type": "Offer",
-            "price": "29",
-            "priceCurrency": "AUD"
-        }
-    }
-    </script>
-</body>
-</html> 
