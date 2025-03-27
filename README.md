@@ -32,6 +32,25 @@ A modern web application designed to help users prepare for SAP Architect certif
 - Subscription management through Stripe
 - Premium content access control
 
+## Application Structure
+
+The application is structured as:
+
+1. **Static Landing Page**: 
+   - Served at the root route (`/`)
+   - Marketing content, features, pricing, etc.
+   - Directs users to the React application via login
+
+2. **React Application**:
+   - Served at `/app` route
+   - Protected routes requiring authentication
+   - Main application features (training, exams, AI chat)
+
+### URL Structure
+- `https://saparchitectprep.com/` - Static landing page
+- `https://saparchitectprep.com/login` - Login page (redirects to React app)
+- `https://saparchitectprep.com/app/*` - React application routes
+
 ## Technology Stack
 
 ### Frontend
@@ -44,7 +63,7 @@ A modern web application designed to help users prepare for SAP Architect certif
 ### Backend & Services
 - Supabase (Database & Authentication)
 - Stripe (Payment Processing)
-- Nginx (Production Server)
+- Express.js (Server)
 
 ## Development
 
@@ -73,7 +92,7 @@ npm run dev
 
 # Production build
 npm run build
-npm run preview  # Preview production build locally
+npm run start  # Start the Express server
 ```
 
 ### Docker Deployment
@@ -97,18 +116,22 @@ npm run test:coverage
 ## Project Structure
 ```
 sap-exam-prep/
-├── src/
+├── src/                # React application source
 │   ├── components/     # React components
 │   ├── contexts/       # React contexts
-│   ├── hooks/         # Custom hooks
-│   ├── lib/           # Utility functions
-│   ├── pages/         # Page components
-│   ├── services/      # Service integrations
-│   ├── store/         # Zustand stores
-│   └── types/         # TypeScript types
-├── public/            # Static assets
-├── supabase/         # Supabase migrations
-└── docker/           # Docker configuration
+│   ├── hooks/          # Custom hooks
+│   ├── lib/            # Utility functions
+│   ├── pages/          # Page components
+│   ├── services/       # Service integrations
+│   ├── store/          # Zustand stores
+│   └── types/          # TypeScript types
+├── website/            # Static landing page
+│   ├── css/            # Stylesheets
+│   ├── js/             # JavaScript files
+│   ├── images/         # Images
+│   └── index.html      # Main HTML file
+├── public/             # Static assets for React app
+└── server.js           # Express server for both static site and React app
 ```
 
 ## Database Schema
@@ -130,7 +153,7 @@ sap-exam-prep/
 ## Available Scripts
 - `npm run dev`: Start development server
 - `npm run build`: Build for production
-- `npm run preview`: Preview production build
+- `npm run start`: Start production server
 - `npm run test`: Run tests
 - `npm run encrypt-premium`: Encrypt premium content
 
@@ -214,7 +237,8 @@ For support, please contact ireknie00@gmail.com
    docker-compose up --build
    ```
 4. Access the application:
-   - Production: http://localhost:80
+   - Static Landing Page: http://localhost/
+   - React Application: http://localhost/app
    - Development/Stripe Testing: http://localhost:5173
 
 ### 🔧 Development Setup
@@ -237,19 +261,45 @@ For support, please contact ireknie00@gmail.com
    ```bash
    npm run build
    ```
-2. Preview production build:
+2. Start the Express server:
    ```bash
-   npm run preview
+   npm run start
    ```
 
-### 🧪 Testing
-```bash
-# Run all tests
-npm run test
+## AI Model Configuration
 
-# Run tests with UI
-npm run test:ui
+The application uses a consolidated configuration system for AI models, ensuring consistency between frontend and backend:
 
-# Run tests with coverage
-npm run test:coverage
-```
+- Primary configuration in `src/services/aiConfig.ts`
+- Mirrored in `supabase/functions/chat/config.ts` for the backend
+- Re-exported from `src/lib/aiConfig.ts` for backward compatibility
+
+#### Setting Up AI Models
+
+1. Configure your environment variables in `.env`:
+   ```
+   # Primary OpenAI API key
+   VITE_OPENAI_API_KEY=your_openai_key
+
+   # DeepSeek fallback API key
+   VITE_DEFAULT_OPENAI_KEY=your_deepseek_key
+   
+   # Optional: Override model IDs
+   VITE_LLM01=meta-llama/llama-3.2-11b-vision-instruct:free
+   VITE_LLM02=mistralai/mistral-7b-instruct
+   VITE_LLM03=openai/gpt-3.5-turbo
+   ```
+
+2. The system automatically handles model selection and fallback:
+   - If the primary model fails, it switches to DeepSeek
+   - A notification appears when fallback is activated
+
+#### Testing the Fallback Mechanism
+
+You can directly use the DeepSeek fallback model to test without relying on actual model failures:
+
+1. **DeepSeek Test Option**: Select "DeepSeek (Direct Fallback Test)" from the model dropdown
+2. **Direct Access Button**: Click "Use DeepSeek Directly" 
+3. **Environment Variable**: Set `VITE_LLM03=fallbackllm` to make GPT-3.5 automatically use DeepSeek
+
+This configuration ensures consistent model behavior between frontend and backend components.

@@ -40,6 +40,56 @@ const copyPublicFiles = (): Plugin => ({
   }
 });
 
+// Custom plugin to copy website directory
+const copyWebsiteFiles = (): Plugin => ({
+  name: 'copy-website-files',
+  enforce: 'post',
+  apply: 'build',
+  async writeBundle() {
+    const websiteDir = path.resolve(__dirname, 'website');
+    const distDir = path.resolve(__dirname, 'dist');
+    
+    if (fs.existsSync(websiteDir)) {
+      console.log('Copying website directory files to dist...');
+      
+      // Create the website directory in dist
+      const distWebsiteDir = path.join(distDir, 'website');
+      fs.mkdirSync(distWebsiteDir, { recursive: true });
+      
+      // Copy all files recursively
+      const copyDir = (src: string, dest: string) => {
+        const entries = fs.readdirSync(src, { withFileTypes: true });
+        
+        for (const entry of entries) {
+          const srcPath = path.join(src, entry.name);
+          const destPath = path.join(dest, entry.name);
+          
+          if (entry.isDirectory()) {
+            fs.mkdirSync(destPath, { recursive: true });
+            copyDir(srcPath, destPath);
+          } else {
+            fs.copyFileSync(srcPath, destPath);
+          }
+        }
+      };
+      
+      copyDir(websiteDir, distWebsiteDir);
+      
+      // Copy specific images to the root dist directory
+      const imagesToCopy = ['logo.png', 'arch-exam-prep-part03.png'];
+      for (const image of imagesToCopy) {
+        const imagePath = path.join(websiteDir, 'images', image);
+        if (fs.existsSync(imagePath)) {
+          fs.copyFileSync(imagePath, path.join(distDir, image));
+          console.log(`Copied ${image} to dist root`);
+        }
+      }
+      
+      console.log('Website directory copied successfully');
+    }
+  }
+});
+
 // Get environment variables with fallbacks
 const getEnvVar = (key: string, defaultValue: string): string => {
   return process.env[key] || defaultValue;
@@ -52,7 +102,8 @@ const targetDomain = getEnvVar('VITE_TARGET_DOMAIN', 'examprep.techtreasuretrove
 export default defineConfig({
   plugins: [
     react(),
-    copyPublicFiles()
+    copyPublicFiles(),
+    copyWebsiteFiles()
   ],
   server: {
     host: true,

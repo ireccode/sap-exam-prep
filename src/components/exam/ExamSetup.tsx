@@ -37,7 +37,7 @@ export function ExamSetup({ onStart }: ExamSetupProps) {
           <input
             type="range"
             min={1}
-            max={40}
+            max={180}
             value={duration}
             onChange={(e) => setDuration(parseInt(e.target.value))}
             className="w-full"

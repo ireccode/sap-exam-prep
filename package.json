@@ -23,7 +23,9 @@
     "deploy:functions": "bash scripts/deploy-edge-functions.sh",
     "start": "node server.js",
     "verify-build": "node scripts/verify-build.js",
-    "copy-files": "cp -r public/*.encrypted dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp _static.json dist/ && mkdir -p dist/.do && cp -r .do/* dist/.do/ 2>/dev/null || :"
+    "copy-files": "cp -r public/*.encrypted dist/ && cp -r website dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp _static.json dist/ && mkdir -p dist/.do && cp -r .do/* dist/.do/ 2>/dev/null || : && cp -f website/images/logo.png dist/",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

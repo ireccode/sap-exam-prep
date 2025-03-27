@@ -46,7 +46,17 @@ export function RoadmapPage() {
 
   const handleExamClick = (exam: ExamInfo) => {
     if (exam.status === 'current') {
-      navigate('/training');
+      // Determine the price ID based on the exam code
+      const priceId = import.meta.env[`VITE_STRIPE_PRICE_ID_${exam.code}`] || import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID;
+
+      // Log the current price ID to the console
+      console.log(`Current Price ID for ${exam.code}:`, priceId);
+
+      // Set the VITE_STRIPE_PREMIUM_PRICE_ID environment variable
+      import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID = priceId;
+
+      // Redirect to /training
+      navigate('/training', { state: { productTitle: exam.title } });
     }
   };
 

@@ -106,44 +106,47 @@ const SafeRoadmap = () => (
 
 export function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Toaster position="top-right" />
-            <Header />
-            <main className="container mx-auto px-4 py-8 flex-grow">
-              <Routes>
-                <Route path="/login" element={<LoginForm />} />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Home />
-                  </ProtectedRoute>
-                } />
-                <Route path="/terms" element={<TermsAndConditions />} />
-                <Route path="/roadmap" element={<SafeRoadmap />} />
-                <Route path="/training" element={<SafeTrainingDeck />} />
-                <Route path="/mini-exam" element={<SafeMiniExam />} />
-                <Route path="/ai-chat" element={<SafeAIChat />} />
-                <Route path="/profile" element={<SafeProfileForm />} />
-                <Route path="/subscription" element={<SubscriptionPage />} />
-                <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
-                <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/update-password" element={<UpdatePassword />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-            <Footer />
-            <BottomNav />
-          </div>
-        </SubscriptionProvider>
-      </AuthProvider>
-    </Router>
+      <Router basename="/app">
+        <AuthProvider>
+          <SubscriptionProvider>
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <Toaster position="top-right" />
+              <Header />
+              <main className="container mx-auto px-4 py-8 flex-grow">
+                <Routes>
+                  <Route path="/login" element={<LoginForm />} />
+                  <Route path="/" element={
+                    <Navigate to="/dashboard" replace />
+                  } />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/terms" element={<TermsAndConditions />} />
+                  <Route path="/roadmap" element={<SafeRoadmap />} />
+                  <Route path="/training" element={<SafeTrainingDeck />} />
+                  <Route path="/mini-exam" element={<SafeMiniExam />} />
+                  <Route path="/ai-chat" element={<SafeAIChat />} />
+                  <Route path="/profile" element={<SafeProfileForm />} />
+                  <Route path="/subscription" element={<SubscriptionPage />} />
+                  <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+                  <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Routes>
+              </main>
+              <Footer />
+              <BottomNav />
+            </div>
+          </SubscriptionProvider>
+        </AuthProvider>
+      </Router>
   );
 }
 
-function Home() {
+function Dashboard() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 pb-20 md:pb-0">
       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 text-center">
@@ -188,7 +191,14 @@ function Home() {
           Learn | Practice | Succeed with AI
         </text>
       </svg>
-      <img src="/sap_architect_logo01.jpg" alt="SAP Architect Logo" className="h-600 w-600 text-blue-600" />
+      <img 
+        src="/sap_architect_logo01.jpg" 
+        alt="SAP Architect Logo" 
+        className="w-full h-auto max-h-[600px] object-contain md:max-w-[600px] mx-auto"
+        loading="eager"
+        decoding="async"
+        style={{ imageRendering: 'crisp-edges' }}
+      />
     </div>
   );
 }
