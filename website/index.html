@@ -435,32 +435,27 @@
     <!-- Custom navigation script to handle button clicks safely -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        // Get the app domain from a data attribute or environment variable
         const APP_DOMAIN = 'https://shark-app-22fqj.ondigitalocean.app';
-        
-        // Handle all types of app links
-        const links = document.querySelectorAll('a');
+
+        // Handle buttons with data-href
+        const ctaButtons = document.querySelectorAll('button[data-href]');
+        ctaButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const href = this.getAttribute('data-href');
+            if (href) {
+              window.location.href = href;
+            }
+          });
+        });
+
+        // Handle all app links
+        const links = document.querySelectorAll('a[href^="/login"], a[href^="/app/"], a[href*="app.saparchitectprep.com"]');
         links.forEach(link => {
           const href = link.getAttribute('href');
-          if (!href) return;
-          
-          // Handle /login links
-          if (href === '/login') {
+          if (href.startsWith('/login')) {
             link.setAttribute('href', `${APP_DOMAIN}/login`);
-          }
-          // Handle /app/* links
-          else if (href.startsWith('/app/')) {
-            const path = href.replace('/app/', '/');
-            link.setAttribute('href', `${APP_DOMAIN}${path}`);
-          }
-          // Handle app.saparchitectprep.com links
-          else if (href.includes('app.saparchitectprep.com')) {
-            const path = new URL(href).pathname;
-            link.setAttribute('href', `${APP_DOMAIN}${path}`);
-          }
-          // Handle app.{any-domain} links
-          else if (href.match(/^https?:\/\/app\./)) {
-            const path = new URL(href).pathname;
+          } else if (href.includes('app.saparchitectprep.com')) {
+            const path = href.replace('https://app.saparchitectprep.com', '');
             link.setAttribute('href', `${APP_DOMAIN}${path}`);
           }
         });
