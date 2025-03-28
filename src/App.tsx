@@ -110,7 +110,6 @@ export function App() {
         <AuthProvider>
           <SubscriptionProvider>
             <div className="min-h-screen bg-gray-50 flex flex-col">
-              <Toaster position="top-right" />
               <Header />
               <main className="container mx-auto px-4 py-8 flex-grow">
                 <Routes>

@@ -30,15 +30,15 @@ app.use(helmet({
 // Compression
 app.use(compression());
 
-// Serve React app static files with higher priority for asset paths
-app.use('/assets', express.static(path.join(__dirname, 'assets'), {
+// Serve React app static files from app/assets directory
+app.use('/app/assets', express.static(path.join(__dirname, 'app/assets'), {
   etag: true,
   lastModified: true,
   maxAge: '1w'
 }));
 
 // Serve static files with proper paths and quality settings
-app.use('/logo.png', express.static(path.join(__dirname, 'website/images/logo.png'), {
+app.use('/logo.png', express.static(path.join(__dirname, 'images/logo.png'), {
   etag: true,
   lastModified: true,
   maxAge: '1w',
@@ -49,7 +49,7 @@ app.use('/logo.png', express.static(path.join(__dirname, 'website/images/logo.pn
 }));
 
 // Serve favicon from logo.png
-app.use('/favicon.ico', express.static(path.join(__dirname, 'website/images/logo.png'), {
+app.use('/favicon.ico', express.static(path.join(__dirname, 'images/logo.png'), {
   etag: true,
   lastModified: true,
   maxAge: '1w',
@@ -59,16 +59,17 @@ app.use('/favicon.ico', express.static(path.join(__dirname, 'website/images/logo
   }
 }));
 
+// Vite icon
 app.use('/vite.svg', express.static(path.join(__dirname, 'vite.svg')));
 
 // Serve high-quality architect logo
-app.use('/sap_architect_logo01.jpg', express.static(path.join(__dirname, '/sap_architect_logo01.jpg'), {
+app.use('/sap_architect_logo01.jpg', express.static(path.join(__dirname, 'sap_architect_logo01.jpg'), {
   etag: true,
   lastModified: true,
   maxAge: '1w',
   setHeaders: (res) => {
     res.setHeader('Cache-Control', 'public, max-age=604800');
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Type', 'image/jpeg');
   }
 }));
 
@@ -76,8 +77,8 @@ app.use('/sap_architect_logo01.jpg', express.static(path.join(__dirname, '/sap_a
 app.use('/basic_btp_query_bank.encrypted', express.static(path.join(__dirname, 'basic_btp_query_bank.encrypted')));
 app.use('/premium_btp_query_bank.encrypted', express.static(path.join(__dirname, 'premium_btp_query_bank.encrypted')));
 
-// Serve images from website/images directory
-app.use('/website/images', express.static(path.join(__dirname, 'website/images')));
+// Serve images from images directory
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -103,13 +104,20 @@ app.get('/*.encrypted', (req, res, next) => {
   }
 });
 
-// Handle React app routes - this must come before the catch-all route
+// Serve React app static files
+app.use('/app', express.static(path.join(__dirname, 'app'), {
+  etag: true,
+  lastModified: true,
+  maxAge: '1w'
+}));
+
+// Handle React app routes
 app.get('/app*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'app/index.html'));
 });
 
-// Serve static files from the website directory for the landing page
-app.use(express.static(path.join(__dirname, 'website'), {
+// Serve static files for the landing page at root level
+app.use(express.static(__dirname, {
   etag: true,
   lastModified: true,
   setHeaders: (res, filePath) => {
@@ -126,12 +134,12 @@ app.use(express.static(path.join(__dirname, 'website'), {
 
 // Root path specifically serves the landing page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'website/index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Catch-all route for the React app
+// Catch-all route to handle 404s
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.status(404).sendFile(path.join(__dirname, '404.html'));
 });
 
 // Start server

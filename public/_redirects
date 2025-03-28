@@ -2,5 +2,8 @@
 /assets/*  /assets/:splat  200
 /static/*  /static/:splat  200
 
-# Handle SPA routing
+# Handle SPA routing for the React app
+/app/*  /app/index.html  200
+
+# Handle root SPA routing
 /*  /index.html  200
