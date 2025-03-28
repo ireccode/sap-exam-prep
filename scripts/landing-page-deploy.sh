@@ -1,15 +1,25 @@
 #!/bin/bash
 set -e
 
-echo "Starting landing page deployment build..."
+echo "====================================================="
+echo "Landing Page Deployment Script"
+echo "====================================================="
 
 # Parse command line arguments
-WITH_DEPS=false
+APP_DOMAIN="${1:-https://shark-app-22fqj.ondigitalocean.app}"
+PRODUCTION=false
+
+# Check for production flag
 for arg in "$@"
 do
   case $arg in
-    --with-dependencies)
-    WITH_DEPS=true
+    --production)
+    APP_DOMAIN="https://app.saparchitectprep.com"
+    PRODUCTION=true
+    shift
+    ;;
+    --domain=*)
+    APP_DOMAIN="${arg#*=}"
     shift
     ;;
     *)
@@ -18,154 +28,164 @@ do
   esac
 done
 
-# Clean previous builds
-echo "Cleaning previous build artifacts"
-rm -rf landing-dist
-npm run clean-landing 2>/dev/null || :
-
-# Install dependencies if needed
-if [ "$WITH_DEPS" = true ]; then
-  echo "Installing dependencies with --include=dev flag..."
-  npm install --include=dev
+echo "Using app domain: $APP_DOMAIN"
+if [ "$PRODUCTION" = true ]; then
+  echo "Running in PRODUCTION mode"
+else
+  echo "Running in TESTING mode"
 fi
 
-# Create output directory
-mkdir -p landing-dist
-mkdir -p landing-dist/js
-mkdir -p landing-dist/css
-mkdir -p landing-dist/images
+# Create landing-page-dist directory
+echo "Creating landing page distribution directory..."
+mkdir -p landing-page-dist
 
-# Copy website files
-echo "Copying website files to landing-dist/"
-cp -r website/index.html landing-dist/
-cp -r website/js/* landing-dist/js/
-cp -r website/css/* landing-dist/css/
-cp -r website/images/* landing-dist/images/
-cp -r website/sitemap.xml landing-dist/ 2>/dev/null || :
+# Copy website files to landing-page-dist
+echo "Copying website files..."
+cp -r website/* landing-page-dist/
 
-# Copy basic assets
-cp website/images/logo.png landing-dist/
-cp website/images/favicon.ico landing-dist/ 2>/dev/null || :
+# Copy essential assets
+echo "Copying essential assets..."
+cp -r public/images landing-page-dist/ 2>/dev/null || mkdir -p landing-page-dist/images
+cp website/images/logo.png landing-page-dist/favicon.ico 2>/dev/null || echo "No favicon found, skipping..."
+cp website/images/logo.png landing-page-dist/ 2>/dev/null || echo "No logo found, skipping..."
+
+# Update image paths in HTML files from website/images to images
+echo "Updating image paths in HTML files..."
+for html_file in landing-page-dist/*.html; do
+  if [ -f "$html_file" ]; then
+    echo "  Fixing image paths in $html_file..."
+    sed -i.bak "s|website/images/|images/|g" "$html_file"
+    # Clean up backup files
+    rm -f "$html_file.bak"
+  fi
+done
 
 # Create 404 page
-if [ ! -f "landing-dist/404.html" ]; then
-  echo "Creating 404.html page"
-  cat > landing-dist/404.html << 'EOF'
+if [ ! -f "landing-page-dist/404.html" ]; then
+  echo "Creating 404.html page..."
+  cat > landing-page-dist/404.html << EOF
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page Not Found - SAP Architect Exam Prep</title>
-  <link rel="icon" type="image/png" href="/logo.png"/>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f8f9fa;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
       color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
       text-align: center;
     }
-    .container {
-      max-width: 600px;
-      padding: 40px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    h1 { color: #0073e6; }
+    .error-code { 
+      font-size: 5rem; 
+      font-weight: bold;
+      color: #eaeaea;
+      margin: 0;
     }
-    h1 {
-      color: #0a58ca;
-      margin-bottom: 20px;
-    }
-    p {
-      margin-bottom: 20px;
-      line-height: 1.6;
-    }
-    .btn {
+    .back-link {
       display: inline-block;
-      background-color: #0d6efd;
+      margin-top: 2rem;
+      padding: 0.7rem 1.5rem;
+      background-color: #0073e6;
       color: white;
-      padding: 10px 20px;
-      border-radius: 4px;
       text-decoration: none;
+      border-radius: 4px;
       font-weight: 500;
-      transition: background-color 0.3s;
     }
-    .btn:hover {
-      background-color: #0a58ca;
+    .back-link:hover {
+      background-color: #0058a6;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Page Not Found</h1>
-    <p>Sorry, the page you're looking for doesn't exist or has been moved.</p>
-    <a href="/" class="btn">Go to Home Page</a>
-  </div>
+  <p class="error-code">404</p>
+  <h1>Page Not Found</h1>
+  <p>The page you're looking for doesn't exist or has been moved.</p>
+  <a href="/" class="back-link">Go to Home Page</a>
 </body>
 </html>
 EOF
 fi
 
-# Create _headers file for security headers
-echo "Creating _headers file with security configuration"
-cat > landing-dist/_headers << 'EOF'
-/*
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://kit.fontawesome.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'
-  Strict-Transport-Security: max-age=31536000; includeSubDomains
+# Update landing page links to point to app subdomain
+echo "Updating links to point to app domain: $APP_DOMAIN"
+
+# Create a script to update links on the landing page
+for html_file in landing-page-dist/*.html; do
+  if [ -f "$html_file" ]; then
+    echo "Processing $html_file..."
+    
+    # Replace /app/ links with the app domain
+    sed -i.bak "s|href=\"/app/|href=\"$APP_DOMAIN/|g" "$html_file"
+    sed -i.bak "s|action=\"/app/|action=\"$APP_DOMAIN/|g" "$html_file"
+    
+    # Replace /login links with app domain/login
+    sed -i.bak "s|href=\"/login\"|href=\"$APP_DOMAIN/login\"|g" "$html_file"
+    
+    # Fix any hardcoded app.saparchitectprep.com links to use the specified domain
+    sed -i.bak "s|https://app\.saparchitectprep\.com|$APP_DOMAIN|g" "$html_file"
+    
+    # Clean up backup files
+    rm -f "$html_file.bak"
+  fi
+done
+
+# Add JavaScript to fix any dynamic links that might be added via JS
+echo "Adding JavaScript to handle dynamic links..."
+cat >> landing-page-dist/index.html << EOF
+
+<script>
+  // Ensure all app links point to the correct domain
+  document.addEventListener('DOMContentLoaded', function() {
+    // For login links
+    const loginLinks = document.querySelectorAll('a[href="/login"]');
+    loginLinks.forEach(link => {
+      link.setAttribute('href', '$APP_DOMAIN/login');
+    });
+    
+    // For app links
+    const appLinks = document.querySelectorAll('a[href^="/app/"]');
+    appLinks.forEach(link => {
+      const path = link.getAttribute('href').replace('/app/', '/');
+      link.setAttribute('href', '$APP_DOMAIN' + path);
+    });
+    
+    // Fix any hardcoded app.saparchitectprep.com links
+    const sapLinks = document.querySelectorAll('a[href^="https://app.saparchitectprep.com/"]');
+    sapLinks.forEach(link => {
+      const path = link.getAttribute('href').replace('https://app.saparchitectprep.com', '');
+      link.setAttribute('href', '$APP_DOMAIN' + path);
+    });
+  });
+</script>
+</body>
 EOF
 
-# Create _redirects file to handle app routing and redirects
-echo "Creating _redirects file for routing"
-cat > landing-dist/_redirects << 'EOF'
-# Redirect /login to the app login page
-/login  https://shark-app-22fqj.ondigitalocean.app/login  301
-/app/*  https://shark-app-22fqj.ondigitalocean.app/:splat  301
-/app    https://shark-app-22fqj.ondigitalocean.app  301
+# Create _redirects file for Netlify-style redirects (DigitalOcean App Platform supports this)
+echo "Creating _redirects file..."
+cat > landing-page-dist/_redirects << EOF
+# Static assets
+/images/*     /images/:splat     200
+/assets/*     /assets/:splat     200
 
-# Handle 404s
-/*  /index.html  200
-EOF
-
-# Create a static.json file for static site configuration
-echo "Creating static site configuration file..."
-cat > landing-dist/static.json << 'EOF'
-{
-  "root": "./",
-  "clean_urls": true,
-  "routes": {
-    "/**": "index.html"
-  },
-  "https_only": true,
-  "headers": {
-    "/**": {
-      "Cache-Control": "public, max-age=0, must-revalidate"
-    },
-    "/js/**": {
-      "Cache-Control": "public, max-age=31536000, immutable"
-    },
-    "/css/**": {
-      "Cache-Control": "public, max-age=31536000, immutable"
-    },
-    "/images/**": {
-      "Cache-Control": "public, max-age=31536000, immutable"
-    }
-  }
-}
+# Handle SPA routing in root domain
+/*            /index.html        200
 EOF
 
 echo "====================================================="
-echo "Landing page build complete! Files are ready in landing-dist/ directory."
-echo "This is a STATIC SITE deployment - no server.js is needed!"
-echo "Just deploy the landing-dist/ directory to DigitalOcean App Platform"
-echo "as a Static Site (not a Web Service)."
-echo "====================================================="
-ls -la landing-dist/ 
+echo "Landing page build complete! Files are in landing-page-dist/"
+echo "App domain set to: $APP_DOMAIN"
+echo ""
+echo "To deploy to DigitalOcean App Platform:"
+echo "1. Create a new static site"
+echo "2. Point it to the landing-page-dist/ directory"
+echo "3. Set the domain to your root domain (e.g., saparchitectprep.com)"
+echo ""
+echo "To deploy for production use:"
+echo "  ./scripts/landing-page-deploy.sh --production"
+echo "=====================================================" 

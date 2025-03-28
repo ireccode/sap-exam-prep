@@ -13,6 +13,7 @@
     "do-deploy": "npm run do-build && mkdir -p dist/.do && cp -r .do/* dist/.do/",
     "deploy-app": "./scripts/app-deploy.sh",
     "deploy-landing": "./scripts/landing-page-deploy.sh",
+    "deploy-all": "npm run deploy-landing && npm run deploy-app",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "encrypt": "node --loader ts-node/esm scripts/encryptQuestionBanks.ts",
