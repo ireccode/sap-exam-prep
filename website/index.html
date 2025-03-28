@@ -435,23 +435,34 @@
     <!-- Custom navigation script to handle button clicks safely -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        // Add click handlers to all buttons with data-href attribute
-        const navigationButtons = document.querySelectorAll('[data-href]');
-        navigationButtons.forEach(button => {
-          button.addEventListener('click', function() {
-            const href = this.getAttribute('data-href');
-            if (href) {
-              if (href.startsWith('#')) {
-                // For anchor links within the page
-                document.querySelector(href).scrollIntoView({ 
-                  behavior: 'smooth' 
-                });
-              } else {
-                // For external links
-                window.location.href = href;
-              }
-            }
-          });
+        // Get the app domain from a data attribute or environment variable
+        const APP_DOMAIN = 'https://shark-app-22fqj.ondigitalocean.app';
+        
+        // Handle all types of app links
+        const links = document.querySelectorAll('a');
+        links.forEach(link => {
+          const href = link.getAttribute('href');
+          if (!href) return;
+          
+          // Handle /login links
+          if (href === '/login') {
+            link.setAttribute('href', `${APP_DOMAIN}/login`);
+          }
+          // Handle /app/* links
+          else if (href.startsWith('/app/')) {
+            const path = href.replace('/app/', '/');
+            link.setAttribute('href', `${APP_DOMAIN}${path}`);
+          }
+          // Handle app.saparchitectprep.com links
+          else if (href.includes('app.saparchitectprep.com')) {
+            const path = new URL(href).pathname;
+            link.setAttribute('href', `${APP_DOMAIN}${path}`);
+          }
+          // Handle app.{any-domain} links
+          else if (href.match(/^https?:\/\/app\./)) {
+            const path = new URL(href).pathname;
+            link.setAttribute('href', `${APP_DOMAIN}${path}`);
+          }
         });
       });
     </script>
@@ -470,15 +481,6 @@
         document.head.appendChild(script);
       })();
     </script>
-<script>
-  // Handle login links
-  document.addEventListener('DOMContentLoaded', function() {
-    const loginLinks = document.querySelectorAll('a[href="/login"]');
-    loginLinks.forEach(link => {
-      link.setAttribute('href', 'https://shark-app-22fqj.ondigitalocean.app/login');
-    });
-  });
-</script>
   </body>
 </html>
 

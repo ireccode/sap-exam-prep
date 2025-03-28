@@ -43,6 +43,14 @@ mkdir -p landing-page-dist
 echo "Copying website files..."
 cp -r website/* landing-page-dist/
 
+# Fix paths in index.html
+echo "Fixing paths in index.html..."
+sed -i.bak 's|href="/website/images/logo.png"|href="/images/logo.png"|g' landing-page-dist/index.html
+sed -i.bak 's|href="css/|href="/css/|g' landing-page-dist/index.html
+sed -i.bak 's|href="js/|href="/js/|g' landing-page-dist/index.html
+sed -i.bak 's|href="/sitemap.xml"|href="/sitemap.xml"|g' landing-page-dist/index.html
+rm -f landing-page-dist/index.html.bak
+
 # Copy essential assets
 echo "Copying essential assets..."
 cp -r public/images landing-page-dist/ 2>/dev/null || mkdir -p landing-page-dist/images
@@ -137,10 +145,16 @@ done
 
 # Add JavaScript to fix any dynamic links that might be added via JS
 echo "Adding JavaScript to handle dynamic links..."
+# First, remove any existing script tags that we added before
+sed -i.bak '/document.addEventListener('\''DOMContentLoaded'\'', function() {/,/});/d' landing-page-dist/index.html
+sed -i.bak '/<script>/,/<\/script>/d' landing-page-dist/index.html
+rm -f landing-page-dist/index.html.bak
+
+# Now add our new script
 cat >> landing-page-dist/index.html << EOF
 
 <script>
-  // Ensure all app links point to the correct domain
+  // Handle all app links
   document.addEventListener('DOMContentLoaded', function() {
     // For login links
     const loginLinks = document.querySelectorAll('a[href="/login"]');
@@ -172,10 +186,43 @@ cat > landing-page-dist/_redirects << EOF
 # Static assets
 /images/*     /images/:splat     200
 /assets/*     /assets/:splat     200
+/css/*        /css/:splat       200
+/js/*         /js/:splat        200
 
 # Handle SPA routing in root domain
 /*            /index.html        200
 EOF
+
+# Verify deployment files
+echo "Verifying deployment files..."
+echo "Checking index.html..."
+if [ ! -f "landing-page-dist/index.html" ]; then
+  echo "ERROR: index.html not found!"
+  exit 1
+fi
+
+echo "Checking required assets..."
+for file in "css/styles.css" "js/main.js" "images/logo.png"; do
+  if [ ! -f "landing-page-dist/$file" ]; then
+    echo "WARNING: $file not found in landing-page-dist/"
+  fi
+done
+
+echo "Verifying index.html paths..."
+if grep -q 'href="/website/images/logo.png"' landing-page-dist/index.html; then
+  echo "ERROR: Found incorrect logo path in index.html"
+  exit 1
+fi
+
+if grep -q 'href="css/' landing-page-dist/index.html; then
+  echo "ERROR: Found relative CSS path in index.html"
+  exit 1
+fi
+
+if grep -q 'href="js/' landing-page-dist/index.html; then
+  echo "ERROR: Found relative JS path in index.html"
+  exit 1
+fi
 
 echo "====================================================="
 echo "Landing page build complete! Files are in landing-page-dist/"
