@@ -1,4 +1,0 @@
-# Set correct MIME type for encrypted files
-<Files *.encrypted>
-  ForceType application/octet-stream
-</Files> 

@@ -1,6 +1,0 @@
-# Handle static assets first
-/assets/*  /assets/:splat  200
-/static/*  /static/:splat  200
-
-# Handle SPA routing
-/*  /index.html  200

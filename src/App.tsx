@@ -106,7 +106,7 @@ const SafeRoadmap = () => (
 
 export function App() {
   return (
-      <Router basename="/app">
+      <Router>
         <AuthProvider>
           <SubscriptionProvider>
             <div className="min-h-screen bg-gray-50 flex flex-col">
