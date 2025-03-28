@@ -1,37 +1,25 @@
 {
-  "root": "./",
+  "root": "dist",
+  "clean_urls": true,
   "routes": {
-    "/app/**": {
-      "type": "rewrite",
-      "dest": "/app/index.html"
-    },
-    "/login": {
-      "type": "redirect",
-      "dest": "/app/login"
-    },
-    "/**": {
-      "type": "rewrite",
-      "dest": "/index.html"
-    }
+    "/**": "index.html"
   },
+  "https_only": true,
   "headers": {
     "/**": {
-      "Content-Type": "text/html; charset=utf-8"
+      "Cache-Control": "public, max-age=0, must-revalidate"
     },
-    "/app/assets/*.css": {
-      "Content-Type": "text/css; charset=utf-8",
-      "Cache-Control": "public, max-age=604800"
+    "/assets/**": {
+      "Cache-Control": "public, max-age=31536000, immutable"
     },
-    "/app/assets/*.js": {
-      "Content-Type": "text/javascript; charset=utf-8",
-      "Cache-Control": "public, max-age=604800"
+    "/assets/*.js": {
+      "Content-Type": "application/javascript; charset=utf-8"
     },
-    "/images/*": {
-      "Cache-Control": "public, max-age=604800"
+    "/assets/*.css": {
+      "Content-Type": "text/css; charset=utf-8"
     },
     "/*.encrypted": {
-      "Content-Type": "application/octet-stream",
-      "Cache-Control": "public, max-age=604800"
+      "Content-Type": "application/octet-stream"
     }
   }
 } 
