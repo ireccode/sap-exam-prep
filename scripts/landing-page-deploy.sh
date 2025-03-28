@@ -127,9 +127,9 @@ EOF
 echo "Creating _redirects file for routing"
 cat > landing-dist/_redirects << 'EOF'
 # Redirect /login to the app login page
-/login  https://app.examprep.techtreasuretrove.in/login  301
-/app/*  https://app.examprep.techtreasuretrove.in/:splat  301
-/app    https://app.examprep.techtreasuretrove.in  301
+/login  https://shark-app-22fqj.ondigitalocean.app/login  301
+/app/*  https://shark-app-22fqj.ondigitalocean.app/:splat  301
+/app    https://shark-app-22fqj.ondigitalocean.app  301
 
 # Handle 404s
 /*  /index.html  200

@@ -470,6 +470,15 @@
         document.head.appendChild(script);
       })();
     </script>
+<script>
+  // Handle login links
+  document.addEventListener('DOMContentLoaded', function() {
+    const loginLinks = document.querySelectorAll('a[href="/login"]');
+    loginLinks.forEach(link => {
+      link.setAttribute('href', 'https://shark-app-22fqj.ondigitalocean.app/login');
+    });
+  });
+</script>
   </body>
 </html>
 

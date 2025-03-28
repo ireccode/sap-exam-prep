@@ -55,19 +55,23 @@ TEMP_FILE=$(mktemp)
 sed "s|href=\"/app/|href=\"$APP_DOMAIN/|g" website/index.html > "$TEMP_FILE"
 sed -i.tmp "s|action=\"/app/|action=\"$APP_DOMAIN/|g" "$TEMP_FILE"
 
-# Add JavaScript redirect for login
-LOGIN_REDIRECT="<script>
-  // Handle login links
-  document.addEventListener('DOMContentLoaded', function() {
-    const loginLinks = document.querySelectorAll('a[href=\"/login\"]');
-    loginLinks.forEach(link => {
-      link.setAttribute('href', '$APP_DOMAIN/login');
-    });
-  });
-</script>"
+# Use awk to add the login redirect script - this handles multiline content better than sed
+awk -v domain="$APP_DOMAIN" '
+    /<\/body>/ {
+        print "<script>";
+        print "  // Handle login links";
+        print "  document.addEventListener('\''DOMContentLoaded'\'', function() {";
+        print "    const loginLinks = document.querySelectorAll('\''a[href=\"/login\"]'\'');";
+        print "    loginLinks.forEach(link => {";
+        print "      link.setAttribute('\''href'\'', '\''" domain "/login'\'');";
+        print "    });";
+        print "  });";
+        print "</script>";
+    }
+    { print }
+' "$TEMP_FILE" > "$TEMP_FILE.new"
 
-# Add the script right before the closing </body> tag
-sed -i.tmp "s|</body>|$LOGIN_REDIRECT\n</body>|g" "$TEMP_FILE"
+mv "$TEMP_FILE.new" "$TEMP_FILE"
 
 # Check if the changes were successfully made
 if grep -q "$APP_DOMAIN" "$TEMP_FILE"; then
