@@ -28,13 +28,35 @@ for (const dir of requiredDirs) {
   }
 }
 
+// Copy routing config files
+const routingFiles = {
+  '_redirects': '_redirects',
+  'app/.htaccess': 'app/.htaccess'
+};
+
+console.log('Copying routing configuration files...');
+for (const [destPath, srcPath] of Object.entries(routingFiles)) {
+  const srcFilePath = path.join(rootDir, 'public', srcPath);
+  if (fs.existsSync(srcFilePath)) {
+    const destFilePath = path.join(distDir, destPath);
+    // Ensure parent directory exists
+    const destDir = path.dirname(destFilePath);
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+    fs.copyFileSync(srcFilePath, destFilePath);
+    console.log(`Copied ${srcPath} to ${destPath}`);
+  } else {
+    console.warn(`Warning: Could not find ${srcPath} to copy`);
+  }
+}
+
 // 1. Copy critical files from public directory
 const publicFiles = [
   'basic_btp_query_bank.encrypted',
   'premium_btp_query_bank.encrypted',
   'logo.png',
   'sap_architect_logo01.jpg',
-  '_redirects',
   'server.js'
 ];
 
@@ -106,15 +128,23 @@ const appIndexHtml = fs.existsSync(publicIndexPath)
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SAP Architect Exam Prep</title>
+    <base href="/app/" />
   </head>
   <body>
     <div id="root"></div>
   </body>
 </html>`;
 
-// Insert asset links
+// Insert asset links - make sure they're absolute paths
 const processedHtml = appIndexHtml
-  .replace('</head>', `  <link rel="stylesheet" href="/app/assets/${mainCssFile}">\n  <script type="module" crossorigin src="/app/assets/${mainJsFile}"></script>\n</head>`);
+  // Add base tag if it doesn't exist
+  .replace('<head>', '<head>\n    <base href="/app/" />')
+  // Remove any existing base tag to avoid duplicates
+  .replace(/<base href="\/app\/" \/>\n    <base href="\/app\/" \/>/, '<base href="/app/" />')
+  // Add assets with absolute paths
+  .replace('</head>', `  <link rel="stylesheet" href="/app/assets/${mainCssFile}">\n  <script type="module" crossorigin src="/app/assets/${mainJsFile}"></script>\n</head>`)
+  // Remove any reference to /src/main.tsx which is development only
+  .replace(/<script type="module" src="\/src\/main\.tsx"><\/script>/g, '');
 
 // Save the final HTML
 fs.writeFileSync(path.join(distAppDir, 'index.html'), processedHtml);
