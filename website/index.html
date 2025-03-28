@@ -453,7 +453,7 @@
         links.forEach(link => {
           const href = link.getAttribute('href');
           if (href.startsWith('/login')) {
-            link.setAttribute('href', `${APP_DOMAIN}/login`);
+            link.setAttribute('href', `${APP_DOMAIN}`);
           } else if (href.includes('app.saparchitectprep.com')) {
             const path = href.replace('https://app.saparchitectprep.com', '');
             link.setAttribute('href', `${APP_DOMAIN}${path}`);
