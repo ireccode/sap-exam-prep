@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && npm run copy-files",
-    "do-build": "npm install --include=dev && npm run build && ./scripts/upload-static-assets.sh",
-    "do-deploy": "npm run do-build && mkdir -p dist/.do && cp -r .do/* dist/.do/",
+    "do-build": "./scripts/do-build.sh",
+    "do-deploy": "./scripts/digitalocean-deploy.sh",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "encrypt": "node --loader ts-node/esm scripts/encryptQuestionBanks.ts",
@@ -23,7 +23,7 @@
     "deploy:functions": "bash scripts/deploy-edge-functions.sh",
     "start": "node server.js",
     "verify-build": "node scripts/verify-build.js",
-    "copy-files": "cp -r public/*.encrypted dist/ && cp -r website dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp public/_headers dist/ && cp _static.json dist/ && mkdir -p dist/.do && cp -r .do/* dist/.do/ 2>/dev/null || : && cp -f website/images/logo.png dist/",
+    "copy-files": "cp -r public/*.encrypted dist/ && cp -r website dist/ && cp server.js dist/ && cp public/_redirects dist/ && cp public/_headers dist/ && cp _static.json dist/ && mkdir -p dist/.do && cp -r .do/* dist/.do/ 2>/dev/null || : && cp -f website/images/logo.png dist/ && touch dist/404.html",
     "clean": "rm -rf dist",
     "rebuild": "npm run clean && npm run build"
   },

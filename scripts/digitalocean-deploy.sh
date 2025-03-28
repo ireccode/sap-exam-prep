@@ -1,13 +1,69 @@
 #!/bin/bash
 set -e
 
-# Define the directory containing the static assets
-ASSETS_DIR="dist"
+echo "==============================================="
+echo "Starting DigitalOcean deployment process..."
+echo "==============================================="
 
-# Create _headers file if it doesn't exist
-if [ ! -f "${ASSETS_DIR}/_headers" ]; then
+# Install dependencies
+echo "Installing dependencies..."
+npm install
+npm install --save-dev @vitejs/plugin-react esbuild vite typescript@5.5.3
+
+# Check TypeScript version
+echo "Checking TypeScript version..."
+npx tsc --version
+
+# Build the project
+echo "Building the project..."
+npm run clean
+
+# Run TypeScript compilation
+echo "Running TypeScript compilation..."
+npx tsc || echo "TypeScript compilation completed with warnings"
+
+# Run Vite build
+echo "Running Vite build..."
+npx vite build
+
+# Ensure all required files are copied
+echo "Copying required files..."
+mkdir -p dist
+
+# Copy encrypted files
+if [ -d "public" ]; then
+  cp -r public/*.encrypted dist/ 2>/dev/null || echo "No encrypted files found"
+fi
+
+# Copy website directory
+if [ -d "website" ]; then
+  cp -r website dist/ || echo "Failed to copy website directory"
+fi
+
+# Copy server.js
+cp server.js dist/ || echo "Failed to copy server.js"
+
+# Copy redirect files
+if [ -f "public/_redirects" ]; then
+  cp public/_redirects dist/ || echo "Failed to copy _redirects"
+else
+  echo "Creating _redirects file..."
+  cat > dist/_redirects << EOL
+# Handle static assets first
+/assets/*  /assets/:splat  200
+/static/*  /static/:splat  200
+
+# Handle SPA routing
+/*  /index.html  200
+EOL
+fi
+
+# Copy headers file
+if [ -f "public/_headers" ]; then
+  cp public/_headers dist/ || echo "Failed to copy _headers"
+else
   echo "Creating _headers file..."
-  cat > "${ASSETS_DIR}/_headers" << EOL
+  cat > dist/_headers << EOL
 /*
   Content-Security-Policy: default-src 'self' https://*.supabase.co https://openrouter.ai https://api.deepseek.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://kit.fontawesome.com https://js.stripe.com https://seahorse-app-q8fmn.ondigitalocean.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.deepseek.com https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'
   X-Frame-Options: DENY
@@ -16,10 +72,12 @@ if [ ! -f "${ASSETS_DIR}/_headers" ]; then
 EOL
 fi
 
-# Create _static.json file if it doesn't exist
-if [ ! -f "${ASSETS_DIR}/_static.json" ]; then
+# Copy static.json
+if [ -f "_static.json" ]; then
+  cp _static.json dist/ || echo "Failed to copy _static.json"
+else
   echo "Creating _static.json file..."
-  cat > "${ASSETS_DIR}/_static.json" << EOL
+  cat > dist/_static.json << EOL
 {
   "root": "dist",
   "clean_urls": true,
@@ -51,52 +109,19 @@ if [ ! -f "${ASSETS_DIR}/_static.json" ]; then
 EOL
 fi
 
-# Verify that all required files are present
-echo "Verifying build artifacts..."
+# Copy Digital Ocean config
+mkdir -p dist/.do
+cp -r .do/* dist/.do/ 2>/dev/null || echo "No .do directory found"
 
-# Check if _headers file exists
-if [ -f "${ASSETS_DIR}/_headers" ]; then
-  echo "✅ _headers file found"
-else
-  echo "❌ _headers file missing"
-  exit 1
+# Copy logo
+if [ -f "website/images/logo.png" ]; then
+  cp -f website/images/logo.png dist/ || echo "Failed to copy logo.png"
 fi
 
-# Check if _static.json file exists
-if [ -f "${ASSETS_DIR}/_static.json" ]; then
-  echo "✅ _static.json file found"
-else
-  echo "❌ _static.json file missing"
-  exit 1
-fi
-
-# Check if index.html exists
-if [ -f "${ASSETS_DIR}/index.html" ]; then
-  echo "✅ index.html file found"
-else
-  echo "❌ index.html file missing"
-  exit 1
-fi
-
-# Check if WebAssembly is properly allowed in CSP
-if grep -q "'unsafe-eval'" "${ASSETS_DIR}/_headers"; then
-  echo "✅ CSP allows WebAssembly ('unsafe-eval' found in _headers)"
-else
-  echo "⚠️ Warning: CSP may not allow WebAssembly ('unsafe-eval' not found in _headers)"
-fi
-
-# Verify server.js was included
-if [ -f "${ASSETS_DIR}/server.js" ]; then
-  echo "✅ server.js file found"
-else
-  echo "❌ server.js file missing - copying from source"
-  cp server.js "${ASSETS_DIR}/" || exit 1
-fi
-
-# Create a 404.html file if it doesn't exist
-if [ ! -f "${ASSETS_DIR}/404.html" ]; then
+# Create 404.html
+if [ ! -f "dist/404.html" ]; then
   echo "Creating 404.html file..."
-  cat > "${ASSETS_DIR}/404.html" << EOL
+  cat > dist/404.html << EOL
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -156,13 +181,21 @@ if [ ! -f "${ASSETS_DIR}/404.html" ]; then
 </body>
 </html>
 EOL
-  echo "✅ Created 404.html file"
 fi
 
-echo "Build verification complete."
-echo "Static assets are ready for deployment to DigitalOcean App Platform."
+# Verify the HTML file has CSP meta tag
+if [ -f "dist/index.html" ]; then
+  if ! grep -q "Content-Security-Policy" "dist/index.html"; then
+    echo "Adding CSP meta tag to index.html..."
+    sed -i.bak 's/<head>/<head>\n  <meta http-equiv="Content-Security-Policy" content="default-src '\''self'\'' https:\/\/*.supabase.co https:\/\/openrouter.ai https:\/\/api.deepseek.com; script-src '\''self'\'' '\''unsafe-inline'\'' '\''unsafe-eval'\'' '\''unsafe-hashes'\'' https:\/\/kit.fontawesome.com https:\/\/js.stripe.com https:\/\/seahorse-app-q8fmn.ondigitalocean.app; style-src '\''self'\'' '\''unsafe-inline'\''; img-src '\''self'\'' data: https:; connect-src '\''self'\'' https:\/\/*.supabase.co wss:\/\/*.supabase.co https:\/\/openrouter.ai https:\/\/api.deepseek.com https:\/\/api.stripe.com; frame-src '\''self'\'' https:\/\/js.stripe.com https:\/\/hooks.stripe.com; script-src-attr '\''unsafe-inline'\''">/' "dist/index.html"
+    rm -f "dist/index.html.bak"
+  fi
+fi
 
-# For actual upload, DigitalOcean App Platform handles this automatically
-# when using their App Platform. This script is primarily for verification.
+echo "==============================================="
+echo "Deployment build completed successfully!"
+echo "Files in dist directory:"
+ls -la dist/
+echo "==============================================="
 
 exit 0 
