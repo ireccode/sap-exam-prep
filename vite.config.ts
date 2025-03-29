@@ -90,6 +90,64 @@ const copyWebsiteFiles = (): Plugin => ({
   }
 });
 
+// Custom plugin for SPA fallbacks in development
+const spaFallbackPlugin = (): Plugin => ({
+  name: 'spa-fallback-plugin',
+  configureServer(server) {
+    return () => {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url) {
+          return next();
+        }
+        
+        console.log(`[SPA Plugin] Processing request: ${req.url}`);
+        
+        // Skip API requests and static assets
+        if (req.url.startsWith('/api/') || 
+            req.url.startsWith('/assets/') ||
+            req.url.includes('.') ||
+            req.url.includes('__vite')
+        ) {
+          return next();
+        }
+        
+        // App routes to intercept - be more specific with /ai-chat
+        const appRoutes: Record<string, boolean> = {
+          '/login': true,
+          '/dashboard': true,
+          '/training': true,
+          '/mini-exam': true,
+          '/miniexam': true,
+          '/ai-chat': true, // <-- Make sure this is exactly matched
+          '/aichat': true,
+          '/profile': true,
+          '/roadmap': true,
+          '/subscription': true,
+          '/terms': true,
+          '/contact': true,
+        };
+        
+        // Special handling for known problematic routes
+        if (req.url === '/ai-chat') {
+          console.log(`[SPA Fallback] Special handling for /ai-chat route`);
+          req.url = '/index.html';
+          return next();
+        }
+        
+        // Check if this is a registered app route
+        const route = req.url.split('?')[0]; // Remove query params
+        if (appRoutes[route] || req.url.startsWith('/app/')) {
+          console.log(`[SPA Fallback] Handling app route: ${req.url}`);
+          req.url = '/index.html';
+          return next();
+        }
+        
+        next();
+      });
+    };
+  }
+});
+
 // Get environment variables with fallbacks
 const getEnvVar = (key: string, defaultValue: string): string => {
   return process.env[key] || defaultValue;
@@ -103,7 +161,8 @@ export default defineConfig({
   plugins: [
     react(),
     copyPublicFiles(),
-    copyWebsiteFiles()
+    copyWebsiteFiles(),
+    spaFallbackPlugin(),
   ],
   server: {
     host: true,
@@ -118,10 +177,14 @@ export default defineConfig({
           'HTTP-Referer': `https://${targetDomain}`,
         },
       },
-      fs: {
-        allow: ['..'],
-      },
     },
+    fs: {
+      strict: false,
+      allow: ['..']
+    },
+  },
+  preview: {
+    port: 8080,
   },
   build: {
     assetsDir: 'assets',

@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev-fallback": "vite --host",
+    "refresh-fallback": "cp -f public/404.html dist/404.html && cp -f debug-routes.js dist/ && cp -f debug-routes.js public/",
     "build": "tsc && vite build && npm run copy-files",
     "do-build": "npm install --include=dev && npm run build && ./scripts/upload-static-assets.sh",
     "do-deploy": "npm run do-build && mkdir -p dist/.do && cp -r .do/* dist/.do/",

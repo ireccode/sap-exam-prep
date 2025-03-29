@@ -47,14 +47,30 @@ cp server.js dist/ || echo "Failed to copy server.js"
 if [ -f "public/_redirects" ]; then
   cp public/_redirects dist/ || echo "Failed to copy _redirects"
 else
-  echo "Creating _redirects file..."
+  echo "Creating _redirects file with cascading fallback support..."
   cat > dist/_redirects << EOL
 # Handle static assets first
 /assets/*  /assets/:splat  200
 /static/*  /static/:splat  200
+/images/*  /images/:splat  200
 
-# Handle SPA routing
-/*  /index.html  200
+# Special redirects
+/login     /index.html    200
+/training  /index.html    200
+/mini-exam /index.html    200
+/ai-chat   /index.html    200
+/profile   /index.html    200
+/roadmap   /index.html    200
+/dashboard /index.html    200
+/subscription /index.html 200
+/terms     /index.html    200
+/contact   /index.html    200
+
+# Handle SPA routing - Let the client-side routing handle these paths
+/*          /index.html    200
+
+# Fallback for true 404s - this should never happen with our fallback system
+/*          /404.html     404
 EOL
 fi
 
@@ -120,7 +136,7 @@ fi
 
 # Create 404.html
 if [ ! -f "dist/404.html" ]; then
-  echo "Creating 404.html file..."
+  echo "Creating 404.html file with cascading fallback system..."
   cat > dist/404.html << EOL
 <!DOCTYPE html>
 <html lang="en">
@@ -128,6 +144,62 @@ if [ ! -f "dist/404.html" ]; then
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page Not Found | SAP Architect Exam Prep</title>
+  <script>
+    // Cascading Fallback Routing System
+    (function() {
+      // Get the current path from the URL
+      var currentPath = window.location.pathname;
+      // Get the current origin (domain)
+      var origin = window.location.origin;
+      // Store the original attempted URL for debugging
+      var originalUrl = window.location.href;
+      
+      // Create fallback paths in order of preference
+      var fallbacks = [
+        currentPath,     // First try: The current path (SPA might handle it)
+        '/',             // Second try: Root path
+        '/login'         // Third try: Login path
+      ];
+
+      // Don't attempt fallback if we're already at one of the fallback destinations
+      if (currentPath === '/' || currentPath === '/login') {
+        // Just reload the current page in case it's a temporary issue
+        window.location.reload();
+        return;
+      }
+
+      // Store which fallback we're attempting in sessionStorage
+      var fallbackAttempt = sessionStorage.getItem('fallbackAttempt') || 0;
+      
+      // Log for debugging
+      console.log('Fallback routing system activated');
+      console.log('Original URL:', originalUrl);
+      console.log('Current fallback attempt:', fallbackAttempt);
+
+      // If we've tried all fallbacks and still hit 404, show error
+      if (fallbackAttempt >= fallbacks.length) {
+        console.error('All fallbacks failed, showing error page');
+        // Reset fallback counter for next time
+        sessionStorage.removeItem('fallbackAttempt');
+        document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">' +
+          '<h1>Navigation Error</h1>' +
+          '<p>We\'re having trouble loading this page. Please try again or contact support.</p>' +
+          '<a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #0073e6; color: white; text-decoration: none; border-radius: 4px;">Go to Homepage</a>' +
+          '</div>';
+        return;
+      }
+
+      // Try the next fallback
+      var nextFallback = fallbacks[fallbackAttempt];
+      
+      // Increment fallback counter for next attempt
+      sessionStorage.setItem('fallbackAttempt', parseInt(fallbackAttempt) + 1);
+      
+      // Redirect to the next fallback path
+      console.log('Attempting fallback to:', nextFallback);
+      window.location.href = origin + nextFallback;
+    })();
+  </script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -174,8 +246,8 @@ if [ ! -f "dist/404.html" ]; then
 </head>
 <body>
   <div class="container">
-    <h1>404 - Page Not Found</h1>
-    <p>Sorry, the page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+    <h1>Redirecting you...</h1>
+    <p>If you are not automatically redirected, please click the button below</p>
     <a href="/">Return to Homepage</a>
   </div>
 </body>

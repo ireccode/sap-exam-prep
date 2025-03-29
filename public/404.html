@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SAP Architect Exam Prep - Page Not Found</title>
+  <script>
+    // Cascading Fallback Routing System
+    (function() {
+      // Get the current path from the URL
+      var currentPath = window.location.pathname;
+      // Get the current origin (domain)
+      var origin = window.location.origin;
+      // Store the original attempted URL for debugging
+      var originalUrl = window.location.href;
+      
+      // Normalize paths for comparison (remove hyphens)
+      function normalizePath(path) {
+        // Convert mini-exam to miniexam, etc.
+        return path.replace(/-/g, '');
+      }
+      
+      // Map of normalized paths to actual paths
+      var routeMap = {
+        '/miniexam': '/mini-exam',
+        '/aichat': '/ai-chat'
+      };
+      
+      // Check if we need to redirect to the proper path format
+      var normalizedCurrentPath = normalizePath(currentPath);
+      if (routeMap[normalizedCurrentPath]) {
+        console.log('Redirecting to proper path format:', routeMap[normalizedCurrentPath]);
+        window.location.href = origin + routeMap[normalizedCurrentPath];
+        return;
+      }
+      
+      // Create fallback paths in order of preference
+      var fallbacks = [
+        currentPath,     // First try: The current path (SPA might handle it)
+        '/',             // Second try: Root path
+        '/login'         // Third try: Login path
+      ];
+
+      // Special case for /ai-chat
+      if (currentPath === '/ai-chat') {
+        console.log('Special handling for /ai-chat route');
+        window.location.href = origin + '/';
+        return;
+      }
+
+      // Don't attempt fallback if we're already at one of the fallback destinations
+      if (currentPath === '/' || currentPath === '/login') {
+        // Just reload the current page in case it's a temporary issue
+        window.location.reload();
+        return;
+      }
+
+      // Store which fallback we're attempting in sessionStorage
+      var fallbackKey = 'fallback_' + currentPath.replace(/\//g, '_');
+      var fallbackAttempt = parseInt(sessionStorage.getItem(fallbackKey) || '0');
+      
+      // Log for debugging
+      console.log('Fallback routing system activated');
+      console.log('Original URL:', originalUrl);
+      console.log('Current path:', currentPath);
+      console.log('Fallback key:', fallbackKey);
+      console.log('Current fallback attempt:', fallbackAttempt);
+
+      // If we've tried all fallbacks and still hit 404, show error
+      if (fallbackAttempt >= fallbacks.length) {
+        console.error('All fallbacks failed, showing error page');
+        // Reset fallback counter for next time
+        sessionStorage.removeItem(fallbackKey);
+        document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">' +
+          '<h1>Navigation Error</h1>' +
+          '<p>We\'re having trouble loading this page. Please try again or contact support.</p>' +
+          '<a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #0073e6; color: white; text-decoration: none; border-radius: 4px;">Go to Homepage</a>' +
+          '</div>';
+        return;
+      }
+
+      // Try the next fallback
+      var nextFallback = fallbacks[fallbackAttempt];
+      
+      // Increment the attempt counter
+      sessionStorage.setItem(fallbackKey, (parseInt(fallbackAttempt) + 1).toString());
+      
+      // Redirect to the next fallback path
+      console.log('Attempting fallback to:', nextFallback);
+      window.location.href = origin + nextFallback;
+    })();
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f6f9;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #0073e6;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #005bb7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Redirecting you...</h1>
+    <p>If you are not automatically redirected, please click the button below</p>
+    <a href="/" class="btn">Go to Homepage</a>
+  </div>
+</body>
+</html> 

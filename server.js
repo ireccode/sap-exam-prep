@@ -84,12 +84,6 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Handle React app login route directly for landing page links
-app.get('/login', (req, res) => {
-  // Simply redirect to the app login path
-  res.redirect('/app/login');
-});
-
 // Special handler for all encrypted files to ensure proper MIME type
 app.get('/*.encrypted', (req, res, next) => {
   const filePath = path.join(__dirname, req.path);
@@ -104,7 +98,38 @@ app.get('/*.encrypted', (req, res, next) => {
 });
 
 // Handle React app routes - this must come before the catch-all route
-app.get('/app*', (req, res) => {
+app.get([
+  '/app*',
+  '/login',
+  '/dashboard', 
+  '/training', 
+  '/mini-exam', 
+  '/miniexam', // Support both hyphenated and non-hyphenated versions
+  '/ai-chat',
+  '/aichat', // Support both hyphenated and non-hyphenated versions
+  '/profile',
+  '/roadmap',
+  '/subscription',
+  '/subscription/success',
+  '/subscription/cancel',
+  '/terms',
+  '/contact',
+  '/update-password'
+], (req, res) => {
+  // Handle path normalization (convert miniexam to mini-exam)
+  const reqPath = req.path;
+  const normalizedPaths = {
+    '/miniexam': '/mini-exam',
+    '/aichat': '/ai-chat'
+  };
+  
+  if (normalizedPaths[reqPath]) {
+    console.log(`Normalized path from ${reqPath} to ${normalizedPaths[reqPath]}`);
+    return res.redirect(normalizedPaths[reqPath]);
+  }
+  
+  // Log this access for debugging
+  console.log(`Serving app route for: ${reqPath}`);
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -129,7 +154,28 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'website/index.html'));
 });
 
-// Catch-all route for the React app
+// Handle 404 errors properly with fallback
+app.use((req, res, next) => {
+  // Check if the request is for a file that should exist
+  const filePath = path.join(__dirname, req.path);
+  
+  if (fs.existsSync(filePath)) {
+    return next(); // File exists, continue to next middleware
+  }
+  
+  // Check if this is a webpack asset or API request
+  if (req.path.startsWith('/assets/') || 
+      req.path.startsWith('/api/') || 
+      req.path.startsWith('/static/')) {
+    return next(); // Let the next middleware handle it
+  }
+  
+  // For all other routes that don't exist, send 404.html for client-side fallback
+  console.log(`404 for path: ${req.path}, serving 404.html with fallback system`);
+  res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
+// Catch-all route for the React app - this should rarely be reached due to the 404 handler
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

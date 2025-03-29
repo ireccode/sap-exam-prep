@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Profile } from '@/components/profile/Profile';
@@ -9,10 +9,28 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireSubscription = false }: ProtectedRouteProps) {
-  const { user, isPremium, isLoading } = useAuth();
+  const { user, isPremium, loading } = useAuth();
   const location = useLocation();
-
-  if (isLoading) {
+  
+  // Special handling for known problematic routes like /ai-chat
+  useEffect(() => {
+    // Check if we're on AI chat route
+    if (location.pathname === '/ai-chat') {
+      console.log('ProtectedRoute component detected AI chat route');
+      
+      // Store that we're authenticated for this route to prevent redirect loops
+      if (user) {
+        console.log('User is authenticated for AI chat route');
+        sessionStorage.setItem('ai_chat_authenticated', 'true');
+      }
+    }
+  }, [location.pathname, user]);
+  
+  // Check for the special case where we're returning to AI chat after a refresh
+  const isAiChatAuthenticated = sessionStorage.getItem('ai_chat_authenticated') === 'true';
+  const isAiChatRoute = location.pathname === '/ai-chat';
+  
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
@@ -23,7 +41,19 @@ export function ProtectedRoute({ children, requireSubscription = false }: Protec
     );
   }
 
+  // Special case for /ai-chat route
+  if (!user && isAiChatRoute && isAiChatAuthenticated) {
+    console.log('Using cached authentication for AI chat route');
+    // Clear the flag after use
+    sessionStorage.removeItem('ai_chat_authenticated');
+    return <>{children}</>;
+  }
+
   if (!user) {
+    // Remove the cached auth when navigating away
+    if (isAiChatAuthenticated) {
+      sessionStorage.removeItem('ai_chat_authenticated');
+    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

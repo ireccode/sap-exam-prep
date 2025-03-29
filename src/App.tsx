@@ -23,6 +23,9 @@ import { TermsAndConditions } from './components/legal/TermsAndConditions';
 import { ContactPage } from '@/pages/ContactPage';
 import { UpdatePassword } from '@/components/auth/UpdatePassword';
 import { Toaster } from 'react-hot-toast';
+import { RouteErrorBoundary } from './components/common/RouteErrorBoundary';
+import { resetAllFallbackAttempts } from './services/routeFallback';
+import { AIChatPage } from './pages/AIChatPage';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -105,6 +108,36 @@ const SafeRoadmap = () => (
 );
 
 export function App() {
+  // Reset any fallback attempts when the app loads
+  useEffect(() => {
+    resetAllFallbackAttempts();
+    
+    // Handle problematic routes like /ai-chat
+    const handleProblematicRoutes = () => {
+      const pathname = window.location.pathname;
+      
+      // Special handling for AI chat route which has issues with refreshes
+      if (pathname === '/ai-chat') {
+        console.log('App component handling /ai-chat route');
+        
+        // Store the current path in a ref so we can restore it after auth check
+        sessionStorage.setItem('last_route', pathname);
+        
+        // Add a class to the body to indicate we're handling this route
+        document.body.classList.add('handling-ai-chat-route');
+      }
+    };
+    
+    handleProblematicRoutes();
+    
+    // Listen for route changes
+    window.addEventListener('popstate', handleProblematicRoutes);
+    
+    return () => {
+      window.removeEventListener('popstate', handleProblematicRoutes);
+    };
+  }, []);
+
   return (
       <Router>
         <AuthProvider>
@@ -112,33 +145,38 @@ export function App() {
             <div className="min-h-screen bg-gray-50 flex flex-col">
               <Header />
               <main className="container mx-auto px-4 py-8 flex-grow">
-                <Routes>
-                  <Route path="/login" element={<LoginForm />} />
-                  <Route path="/" element={
-                    <Navigate to="/dashboard" replace />
-                  } />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/terms" element={<TermsAndConditions />} />
-                  <Route path="/roadmap" element={<SafeRoadmap />} />
-                  <Route path="/training" element={<SafeTrainingDeck />} />
-                  <Route path="/mini-exam" element={<SafeMiniExam />} />
-                  <Route path="/ai-chat" element={<SafeAIChat />} />
-                  <Route path="/profile" element={<SafeProfileForm />} />
-                  <Route path="/subscription" element={<SubscriptionPage />} />
-                  <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
-                  <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/update-password" element={<UpdatePassword />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
+                <RouteErrorBoundary>
+                  <Routes>
+                    <Route path="/login" element={<LoginForm />} />
+                    <Route path="/" element={
+                      <Navigate to="/dashboard" replace />
+                    } />
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/terms" element={<TermsAndConditions />} />
+                    <Route path="/roadmap" element={<SafeRoadmap />} />
+                    <Route path="/training" element={<SafeTrainingDeck />} />
+                    <Route path="/mini-exam" element={<SafeMiniExam />} />
+                    <Route path="/ai-chat" element={
+                      <AIChatPage />
+                    } />
+                    <Route path="/profile" element={<SafeProfileForm />} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+                    <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/update-password" element={<UpdatePassword />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </RouteErrorBoundary>
               </main>
               <Footer />
               <BottomNav />
             </div>
+            <Toaster position="top-center" />
           </SubscriptionProvider>
         </AuthProvider>
       </Router>
