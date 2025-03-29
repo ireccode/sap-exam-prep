@@ -59,7 +59,7 @@ export function Header() {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <button
-                    onClick={() => handleNavigation('/mini-exam')}
+                    onClick={() => handleNavigation('/miniexam')}
                     className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
                     Exam
@@ -67,7 +67,7 @@ export function Header() {
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <button
-                    onClick={() => handleNavigation('/ai-chat')}
+                    onClick={() => handleNavigation('/aichat')}
                     className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-white px-3 sm:px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900"
                   >
                     AI Assistant

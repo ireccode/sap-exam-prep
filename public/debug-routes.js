@@ -39,18 +39,18 @@
   }
 
   // Special handling for known problematic routes
-  if (window.location.pathname === '/ai-chat') {
-    console.log('🔴 DEBUG FIX: Detected troublesome /ai-chat route');
+  if (window.location.pathname === '/aichat') {
+    console.log('🔴 DEBUG FIX: Detected troublesome /aichat route');
     
     // Record the problematic route
     sessionStorage.setItem('fix_route_ai_chat', '1');
     
     // Check if we need to force a navigation fix
     if (sessionStorage.getItem('fix_route_ai_chat_attempt') === '1') {
-      console.log('🔴 DEBUG FIX: Applying special fix for /ai-chat route');
+      console.log('🔴 DEBUG FIX: Applying special fix for /aichat route');
       sessionStorage.removeItem('fix_route_ai_chat_attempt');
       window.history.pushState(null, '', '/');
-      window.history.pushState(null, '', '/ai-chat');
+      window.history.pushState(null, '', '/aichat');
     }
   }
 
@@ -113,7 +113,7 @@
   // Inject route fixing buttons
   document.addEventListener('DOMContentLoaded', function() {
     // Create UI display for route debugging 
-    if (window.location.search.includes('debug=routes') || window.location.pathname === '/ai-chat') {
+    if (window.location.search.includes('debug=routes') || window.location.pathname === '/aichat') {
       createDebugUI(debugInfo);
     }
   });
@@ -139,7 +139,7 @@
     html += `<p>History Length: <span style="color: ${info.history > 20 ? 'red' : 'lime'}">${info.history}</span></p>`;
     
     // Add AI Chat fix button if needed
-    if (info.pathname === '/ai-chat') {
+    if (info.pathname === '/aichat') {
       html += '<p><strong>AI Chat Route Detected</strong></p>';
       html += '<p><button onclick="sessionStorage.setItem(\'fix_route_ai_chat_attempt\', \'1\');window.location.reload();" style="padding:3px;background:#008800;color:white;border:1px solid #666;">Fix AI-Chat Route</button></p>';
     }

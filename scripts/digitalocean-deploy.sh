@@ -57,8 +57,8 @@ else
 # Special redirects
 /login     /index.html    200
 /training  /index.html    200
-/mini-exam /index.html    200
-/ai-chat   /index.html    200
+/miniexam /index.html    200
+/aichat   /index.html    200
 /profile   /index.html    200
 /roadmap   /index.html    200
 /dashboard /index.html    200

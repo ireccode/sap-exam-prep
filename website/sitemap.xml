@@ -58,7 +58,13 @@
       <priority>0.8</priority>
    </url>
    <url>
-      <loc>https://saparchitectprep.com/app/mini-exam</loc>
+      <loc>https://saparchitectprep.com/app/miniexam</loc>
+      <lastmod>2023-03-26</lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>0.8</priority>
+   </url>
+   <url>
+      <loc>https://saparchitectprep.com/app/aichat</loc>
       <lastmod>2023-03-26</lastmod>
       <changefreq>weekly</changefreq>
       <priority>0.8</priority>

@@ -21,8 +21,8 @@
       
       // Map of normalized paths to actual paths
       var routeMap = {
-        '/miniexam': '/mini-exam',
-        '/aichat': '/ai-chat'
+        '/miniexam': '/miniexam',
+        '/aichat': '/aichat'
       };
       
       // Check if we need to redirect to the proper path format
@@ -40,9 +40,9 @@
         '/login'         // Third try: Login path
       ];
 
-      // Special case for /ai-chat
-      if (currentPath === '/ai-chat') {
-        console.log('Special handling for /ai-chat route');
+      // Special case for /aichat
+      if (currentPath === '/aichat') {
+        console.log('Special handling for /aichat route');
         window.location.href = origin + '/';
         return;
       }

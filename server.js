@@ -79,6 +79,27 @@ app.use('/premium_btp_query_bank.encrypted', express.static(path.join(__dirname,
 // Serve images from website/images directory
 app.use('/website/images', express.static(path.join(__dirname, 'website/images')));
 
+// Serve JavaScript utility files with proper MIME type
+app.use('/refresh.js', express.static(path.join(__dirname, 'refresh.js'), {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Content-Type', 'application/javascript');
+  }
+}));
+
+app.use('/debug-routes.js', express.static(path.join(__dirname, 'debug-routes.js'), {
+  etag: true,
+  lastModified: true,
+  maxAge: '1d',
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Content-Type', 'application/javascript');
+  }
+}));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -103,10 +124,8 @@ app.get([
   '/login',
   '/dashboard', 
   '/training', 
-  '/mini-exam', 
-  '/miniexam', // Support both hyphenated and non-hyphenated versions
-  '/ai-chat',
-  '/aichat', // Support both hyphenated and non-hyphenated versions
+  '/miniexam', 
+  '/aichat',
   '/profile',
   '/roadmap',
   '/subscription',
@@ -119,8 +138,7 @@ app.get([
   // Handle path normalization (convert miniexam to mini-exam)
   const reqPath = req.path;
   const normalizedPaths = {
-    '/miniexam': '/mini-exam',
-    '/aichat': '/ai-chat'
+    // No normalization needed with the new route format
   };
   
   if (normalizedPaths[reqPath]) {

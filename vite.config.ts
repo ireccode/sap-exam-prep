@@ -95,6 +95,20 @@ const spaFallbackPlugin = (): Plugin => ({
   name: 'spa-fallback-plugin',
   configureServer(server) {
     return () => {
+      // Add MIME type handling for JavaScript files
+      server.middlewares.use((req, res, next) => {
+        if (!req.url) return next();
+        
+        // Explicit MIME type for JavaScript utility files
+        const jsUtilFiles = ['/refresh.js', '/debug-routes.js'];
+        if (jsUtilFiles.includes(req.url)) {
+          console.log(`[SPA Plugin] Setting MIME type for utility script: ${req.url}`);
+          res.setHeader('Content-Type', 'application/javascript');
+        }
+        
+        next();
+      });
+      
       server.middlewares.use((req, res, next) => {
         if (!req.url) {
           return next();
@@ -116,9 +130,7 @@ const spaFallbackPlugin = (): Plugin => ({
           '/login': true,
           '/dashboard': true,
           '/training': true,
-          '/mini-exam': true,
           '/miniexam': true,
-          '/ai-chat': true, // <-- Make sure this is exactly matched
           '/aichat': true,
           '/profile': true,
           '/roadmap': true,
@@ -128,8 +140,8 @@ const spaFallbackPlugin = (): Plugin => ({
         };
         
         // Special handling for known problematic routes
-        if (req.url === '/ai-chat') {
-          console.log(`[SPA Fallback] Special handling for /ai-chat route`);
+        if (req.url === '/aichat') {
+          console.log(`[SPA Fallback] Special handling for /aichat route`);
           req.url = '/index.html';
           return next();
         }

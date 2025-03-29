@@ -23,8 +23,8 @@ export function BottomNav() {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/roadmap', icon: Map, label: 'Roadmap' },
     { path: '/training', icon: Book, label: 'Training' },
-    { path: '/mini-exam', icon: Brain, label: 'Exam' },
-    { path: '/ai-chat', icon: MessageSquare, label: 'Chat' },
+    { path: '/miniexam', icon: Brain, label: 'Exam' },
+    { path: '/aichat', icon: MessageSquare, label: 'Chat' },
     { path: '/profile', icon: User, label: 'Profile' },
   ];
 

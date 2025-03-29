@@ -117,14 +117,14 @@ export function App() {
       const pathname = window.location.pathname;
       
       // Special handling for AI chat route which has issues with refreshes
-      if (pathname === '/ai-chat') {
-        console.log('App component handling /ai-chat route');
+      if (pathname === '/aichat') {
+        console.log('App component handling /aichat route');
         
         // Store the current path in a ref so we can restore it after auth check
         sessionStorage.setItem('last_route', pathname);
         
         // Add a class to the body to indicate we're handling this route
-        document.body.classList.add('handling-ai-chat-route');
+        document.body.classList.add('handling-aichat-route');
       }
     };
     
@@ -159,8 +159,8 @@ export function App() {
                     <Route path="/terms" element={<TermsAndConditions />} />
                     <Route path="/roadmap" element={<SafeRoadmap />} />
                     <Route path="/training" element={<SafeTrainingDeck />} />
-                    <Route path="/mini-exam" element={<SafeMiniExam />} />
-                    <Route path="/ai-chat" element={
+                    <Route path="/miniexam" element={<SafeMiniExam />} />
+                    <Route path="/aichat" element={
                       <AIChatPage />
                     } />
                     <Route path="/profile" element={<SafeProfileForm />} />

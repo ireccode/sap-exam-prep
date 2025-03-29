@@ -52,11 +52,11 @@ export function RoadmapPage() {
       // Log the current price ID to the console
       console.log(`Current Price ID for ${exam.code}:`, priceId);
 
-      // Set the VITE_STRIPE_PREMIUM_PRICE_ID environment variable
-      import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID = priceId;
+      // Store the price ID in sessionStorage instead of trying to modify env variables
+      sessionStorage.setItem('current_price_id', priceId);
 
       // Redirect to /training
-      navigate('/training', { state: { productTitle: exam.title } });
+      navigate('/training', { state: { productTitle: exam.title, priceId } });
     }
   };
 

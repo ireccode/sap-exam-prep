@@ -59,7 +59,7 @@
   }
   
   // Special handling for AI Chat route
-  if (window.location.pathname === '/ai-chat') {
+  if (window.location.pathname === '/aichat') {
     console.log('[Route Fix] AI Chat route detected');
 
     // Ensure we're not in a reload loop
@@ -75,7 +75,7 @@
       
       // Register special error handler just for this route
       window.addEventListener('error', function(event) {
-        if (window.location.pathname === '/ai-chat') {
+        if (window.location.pathname === '/aichat') {
           console.error('[Route Fix] Error in AI Chat route:', event.error);
           
           // Save that we encountered an error
@@ -101,7 +101,7 @@
   
   // Check if we're returning after a page reload with auth issues
   window.addEventListener('DOMContentLoaded', function() {
-    const isAiChatRoute = window.location.pathname === '/ai-chat';
+    const isAiChatRoute = window.location.pathname === '/aichat';
     const hadError = localStorage.getItem('ai_chat_had_error') === 'true';
     
     if (isAiChatRoute && hadError) {

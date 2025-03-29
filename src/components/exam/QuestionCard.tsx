@@ -66,7 +66,7 @@ export function QuestionCard({
 
   const handleMoreDetails = () => {
     setPreviousPath(window.location.pathname);
-    navigate('/ai-chat', { 
+    navigate('/aichat', { 
       state: { 
         query: `${question.explanation} Provide more details from SAP documentation` 
       } 
