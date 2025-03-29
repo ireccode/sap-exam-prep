@@ -58,47 +58,6 @@
     }
   }
   
-  // Special handling for AI Chat route
-  if (window.location.pathname === '/aichat') {
-    console.log('[Route Fix] AI Chat route detected');
-
-    // Ensure we're not in a reload loop
-    const reloadCount = parseInt(localStorage.getItem('ai_chat_reload_count') || '0');
-    
-    if (reloadCount > 3) {
-      console.log('[Route Fix] Too many reloads detected, not attempting further fixes');
-      localStorage.setItem('ai_chat_reload_count', '0');
-    } else {
-      // Mark that we're on this route to better handle auth
-      localStorage.setItem('ai_chat_current_route', 'true');
-      localStorage.setItem('ai_chat_reload_count', (reloadCount + 1).toString());
-      
-      // Register special error handler just for this route
-      window.addEventListener('error', function(event) {
-        if (window.location.pathname === '/aichat') {
-          console.error('[Route Fix] Error in AI Chat route:', event.error);
-          
-          // Save that we encountered an error
-          localStorage.setItem('ai_chat_had_error', 'true');
-          
-          // Prevent default only for specific errors
-          if (event.error && (
-              event.error.toString().includes('auth') || 
-              event.error.toString().includes('login') ||
-              event.error.toString().includes('undefined')
-          )) {
-            console.log('[Route Fix] Preventing default error handling');
-            event.preventDefault();
-          }
-        }
-      });
-    }
-  } else {
-    // Clean up AI Chat specific items when on other routes
-    localStorage.removeItem('ai_chat_current_route');
-    localStorage.setItem('ai_chat_reload_count', '0');
-  }
-  
   // Check if we're returning after a page reload with auth issues
   window.addEventListener('DOMContentLoaded', function() {
     const isAiChatRoute = window.location.pathname === '/aichat';
