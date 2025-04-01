@@ -17,10 +17,29 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'", "https://*.supabase.co", "https://openrouter.ai"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'unsafe-hashes'", "https://js.stripe.com", "https://cdnjs.cloudflare.com"],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "'unsafe-eval'", 
+        "'unsafe-hashes'", 
+        "https://js.stripe.com", 
+        "https://cdnjs.cloudflare.com",
+        "https://www.googletagmanager.com",
+        "https://www.google-analytics.com",
+        "https://ssl.google-analytics.com"
+      ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://*.supabase.co", "wss://*.supabase.co", "https://openrouter.ai", "https://api.stripe.com", "https://formsubmit.co"],
+      imgSrc: ["'self'", "data:", "https:", "https://www.google-analytics.com"],
+      connectSrc: [
+        "'self'", 
+        "https://*.supabase.co", 
+        "wss://*.supabase.co", 
+        "https://openrouter.ai", 
+        "https://api.stripe.com", 
+        "https://formsubmit.co",
+        "https://www.google-analytics.com",
+        "https://analytics.google.com"
+      ],
       frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
       formAction: ["'self'", "https://formsubmit.co"]
