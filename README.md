@@ -47,9 +47,8 @@ The application is structured as:
    - Main application features (training, exams, AI chat)
 
 ### URL Structure
-- `https://saparchitectprep.com/` - Static landing page
-- `https://saparchitectprep.com/login` - Login page (redirects to React app)
-- `https://saparchitectprep.com/app/*` - React application routes
+- `https://www.saparchitectprep.com/` - Static landing page
+- `https://www.saparchitectprep.com/login` - Login page (redirects to React app)
 
 ## Technology Stack
 

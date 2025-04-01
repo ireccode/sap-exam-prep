@@ -16,13 +16,14 @@ const PORT = process.env.PORT || 5173;
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'", "https://*.supabase.co", "https://openrouter.ai", "https://api.deepseek.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'unsafe-hashes'", "https://kit.fontawesome.com", "https://js.stripe.com"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      defaultSrc: ["'self'", "https://*.supabase.co", "https://openrouter.ai"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'unsafe-hashes'", "https://js.stripe.com", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://*.supabase.co", "wss://*.supabase.co", "https://openrouter.ai", "https://api.deepseek.com", "https://api.stripe.com"],
+      connectSrc: ["'self'", "https://*.supabase.co", "wss://*.supabase.co", "https://openrouter.ai", "https://api.stripe.com", "https://formsubmit.co"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
-      scriptSrcAttr: ["'unsafe-inline'"]
+      scriptSrcAttr: ["'unsafe-inline'"],
+      formAction: ["'self'", "https://formsubmit.co"]
     }
   }
 }));
@@ -196,6 +197,14 @@ app.use((req, res, next) => {
 // Catch-all route for the React app - this should rarely be reached due to the 404 handler
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Redirect non-www to www
+app.use((req, res, next) => {
+  if (req.headers.host === 'saparchitectprep.com') {
+    return res.redirect(301, 'https://www.saparchitectprep.com' + req.originalUrl);
+  }
+  next();
 });
 
 // Start server

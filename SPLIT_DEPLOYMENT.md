@@ -7,11 +7,11 @@ This document outlines the proper approach for deploying the SAP Architect Exam 
 We need to deploy two separate components:
 
 1. **Marketing Landing Page (Root Domain)**  
-   - Deployed to: `https://saparchitectprep.com`
+   - Deployed to: `https://www.saparchitectprep.com`
    - Contains: Marketing content, feature information, signup/login links
 
 2. **React SPA (Subdomain)**  
-   - Deployed to: `https://app.saparchitectprep.com`
+   - Deployed to: `https://www.saparchitectprep.com`
    - Contains: Application functionality, dashboard, exams, AI chat
 
 ## Why Split Deployment?
@@ -62,7 +62,7 @@ This will:
 
 1. Create a new **Static Site** on DigitalOcean App Platform
 2. Deploy from your repository or upload the `app-dist/` directory
-3. Configure the domain as `app.saparchitectprep.com`
+3. Configure the domain as `www.saparchitectprep.com`
 4. Set the build command to:
    ```
    npm run deploy-app
@@ -74,9 +74,9 @@ This will:
 
 ## Verification
 
-1. Visit `https://saparchitectprep.com` - Should show the marketing landing page
-2. Visit `https://app.saparchitectprep.com` - Should show the React app login page
-3. Check links on landing page - They should point to `app.saparchitectprep.com`
+1. Visit `https://www.saparchitectprep.com` - Should show the marketing landing page
+2. Visit `https://www.saparchitectprep.com` - Should show the React app login page
+3. Check links on landing page - They should point to `www.saparchitectprep.com`
 4. Verify WebAssembly functionality on the app subdomain
 
 ## Troubleshooting
@@ -90,7 +90,7 @@ If WebAssembly isn't working, verify the CSP settings in `app-dist/index.html` i
 ### Landing Page Links Not Redirecting to App
 Run the landing page deployment script again with the correct app domain:
 ```
-./scripts/landing-page-deploy.sh https://app.saparchitectprep.com
+./scripts/landing-page-deploy.sh https://www.saparchitectprep.com
 ```
 
 ### React App Routes Not Working

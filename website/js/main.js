@@ -63,10 +63,18 @@ function handleStickyHeader() {
 
 // Carousel Functionality
 function setupCarousel() {
+    const carousel = document.querySelector('.carousel-container');
+    
+    // Only setup carousel if the carousel container exists on the page
+    if (!carousel) return;
+    
     const slides = document.querySelectorAll('.carousel-slide');
     const dots = document.querySelectorAll('.dot');
     const prevBtn = document.querySelector('.prev-btn');
     const nextBtn = document.querySelector('.next-btn');
+    
+    // Make sure all required elements exist
+    if (!slides.length || !dots.length || !prevBtn || !nextBtn) return;
     
     let currentSlide = 0;
     const totalSlides = slides.length;
@@ -122,28 +130,32 @@ function setupCarousel() {
 
 // Floating CTA handling
 function handleFloatingCTA() {
-    if (floatingCta) {
-        let ticking = false;
-        let scrollY;
+    if (!floatingCta) return;
+    
+    let ticking = false;
+    let scrollY;
+    
+    window.addEventListener('scroll', () => {
+        scrollY = window.scrollY;
         
-        window.addEventListener('scroll', () => {
-            scrollY = window.scrollY;
-            
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    const heroSection = document.querySelector('.hero');
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const heroSection = document.querySelector('.hero');
+                
+                // Only proceed if hero section exists
+                if (heroSection) {
                     const heroHeight = heroSection.offsetHeight;
                     
                     // Show floating CTA only after scrolling past the hero section
                     floatingCta.classList.toggle('floating-cta--visible', scrollY > heroHeight);
-                    
-                    ticking = false;
-                });
+                }
                 
-                ticking = true;
-            }
-        });
-    }
+                ticking = false;
+            });
+            
+            ticking = true;
+        }
+    });
 }
 
 // Notification system

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Contact SAP Architect Certification Exam Preparation Support Team">
+    <title>Contact Us | SAP Architect Certification Exam Preparation</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+      .contact-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+      .contact-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .contact-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+      }
+      .contact-subtitle {
+        color: #666;
+        margin-top: 10px;
+      }
+      .contact-form {
+        max-width: 500px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #333;
+      }
+      .form-input, .form-textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .form-button {
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.3s;
+      }
+      .form-button:hover {
+        background-color: #0052a3;
+      }
+      .success-message {
+        display: none;
+        text-align: center;
+        background: #e6f7ef;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #a3e2c6;
+      }
+      .success-icon {
+        color: #28a745;
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
+      .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+      }
+      .send-icon {
+        margin-right: 8px;
+      }
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      /* Social Icons Styling */
+      .social__icons {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+      }
+      .social__icons a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background-color: #0066cc;
+        color: white;
+        border-radius: 50%;
+        font-size: 20px;
+        transition: all 0.3s ease;
+      }
+      .social__icons a:hover {
+        background-color: #0052a3;
+        transform: translateY(-3px);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav container">
+            <div class="nav__logo">
+                <a href="index.html">
+                    <img src="/images/logo.png" alt="SAP Architect Certification Exam Prep Logo" width="50" height="50">
+                </a>
+            </div>
+            <ul class="nav__menu">
+                <li><a href="index.html#benefits">Benefits</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#faq">FAQ</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <button class="nav__cta btn btn--primary" onclick="location.href='https://www.saparchitectprep.com/login'">Login</button>
+        </nav>
+    </header>
+
+    <!-- Contact Content -->
+    <div class="contact-container">
+        <div class="contact-header">
+            <h1 class="contact-title">Contact Us</h1>
+            <p class="contact-subtitle">Have questions about our SAP Architect certification preparation platform? We're here to help!</p>
+        </div>
+
+        <div class="contact-form">
+            <form id="contactForm" method="POST">
+                <input type="hidden" name="_subject" value="SAP Exam Prep Contact Form">
+                <input type="hidden" name="_captcha" value="true">
+                <input type="hidden" name="_next" value="https://www.saparchitectprep.com/contact.html?success=true">
+                
+                <div class="form-group">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" id="name" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input type="text" id="subject" name="subject" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea id="message" name="message" class="form-textarea" required></textarea>
+                </div>
+                
+                <div class="error-message" id="errorMessage">
+                    Failed to send message. Please try again later.
+                </div>
+                
+                <button type="submit" class="form-button" id="submitButton">
+                    <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    Send Message
+                </button>
+            </form>
+            
+            <div class="success-message" id="successMessage">
+                <svg class="success-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <h2>Message Sent!</h2>
+                <p>Thank you for contacting us. We'll get back to you soon.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">            
+                <div class="footer__links">
+                    <ul>
+                        <li><a href="index.html#benefits">Benefits</a></li>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#pricing">Pricing</a></li>
+                    </ul>
+                </div>
+                <div class="footer__social">
+                    <h4>Follow Us</h4>
+                    <div class="social__icons">
+                        <a href="https://www.linkedin.com/in/ireneusz-irek-niedbala-532898ba/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2025 SAPArchitectPrep by Spiritki3 PTY LTD. All rights reserved. | <a href="terms.html">Terms & Conditions</a> | <a href="contact.html">Contact</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            const submitButton = document.getElementById('submitButton');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            // Check if the URL contains a success parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                contactForm.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Reset URL parameter after displaying success message
+                window.history.replaceState({}, document.title, "contact.html");
+            }
+
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                submitButton.disabled = true;
+                submitButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="send-icon animate-spin">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    Sending...
+                `;
+                
+                // Get the form data
+                const formData = new FormData(contactForm);
+                
+                // Send the form data to FormSubmit.co using fetch API
+                //fetch("https://formsubmit.co/ajax/support@saparchitectprep.com", {
+                fetch("https://formsubmit.co/ajax/narkanie00@gmail.com", {                    
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: formData.get('name'),
+                        email: formData.get('email'),
+                        subject: formData.get('subject'),
+                        message: formData.get('message'),
+                        _subject: `SAP Exam Prep Contact: ${formData.get('subject')}`
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Success! Show success message
+                    contactForm.style.display = 'none';
+                    successMessage.style.display = 'block';
+                })
+                .catch(error => {
+                    // Show error message
+                    console.error('Error:', error);
+                    errorMessage.style.display = 'block';
+                    
+                    // Reset button
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = `
+                        <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Message
+                    `;
+                });
+            });
+        });
+    </script>
+    <style>
+      body {
+        padding-top: 80px; /* Adjust this value as needed */
+      }
+    </style>
+  </body>
+</html> 

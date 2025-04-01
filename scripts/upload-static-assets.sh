@@ -9,7 +9,7 @@ if [ ! -f "${ASSETS_DIR}/_headers" ]; then
   echo "Creating _headers file..."
   cat > "${ASSETS_DIR}/_headers" << EOL
 /*
-  Content-Security-Policy: default-src 'self' https://*.supabase.co https://openrouter.ai https://api.deepseek.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://kit.fontawesome.com https://js.stripe.com https://seahorse-app-q8fmn.ondigitalocean.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.deepseek.com https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'
+  Content-Security-Policy: default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://seahorse-app-q8fmn.ondigitalocean.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer-when-downgrade
@@ -32,7 +32,7 @@ if [ ! -f "${ASSETS_DIR}/_static.json" ]; then
   "headers": {
     "/**": {
       "Cache-Control": "public, max-age=0, must-revalidate",
-      "Content-Security-Policy": "default-src 'self' https://*.supabase.co https://openrouter.ai https://api.deepseek.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://kit.fontawesome.com https://js.stripe.com https://seahorse-app-q8fmn.ondigitalocean.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.deepseek.com https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'"
+      "Content-Security-Policy": "default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://seahorse-app-q8fmn.ondigitalocean.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'"
     },
     "/assets/**": {
       "Cache-Control": "public, max-age=31536000, immutable"

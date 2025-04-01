@@ -14,7 +14,7 @@ for arg in "$@"
 do
   case $arg in
     --production)
-    APP_DOMAIN="https://app.saparchitectprep.com"
+    APP_DOMAIN="https://www.saparchitectprep.com"
     PRODUCTION=true
     shift
     ;;
@@ -135,7 +135,7 @@ for html_file in landing-page-dist/*.html; do
     # Replace /login links with app domain/login
     sed -i.bak "s|href=\"/login\"|href=\"$APP_DOMAIN/login\"|g" "$html_file"
     
-    # Fix any hardcoded app.saparchitectprep.com links to use the specified domain
+    # Fix any hardcoded www.saparchitectprep.com links to use the specified domain
     sed -i.bak "s|https://app\.saparchitectprep\.com|$APP_DOMAIN|g" "$html_file"
     
     # Clean up backup files
@@ -169,10 +169,10 @@ cat >> landing-page-dist/index.html << EOF
       link.setAttribute('href', '$APP_DOMAIN' + path);
     });
     
-    // Fix any hardcoded app.saparchitectprep.com links
-    const sapLinks = document.querySelectorAll('a[href^="https://app.saparchitectprep.com/"]');
+    // Fix any hardcoded www.saparchitectprep.com links
+    const sapLinks = document.querySelectorAll('a[href^="https://www.saparchitectprep.com/"]');
     sapLinks.forEach(link => {
-      const path = link.getAttribute('href').replace('https://app.saparchitectprep.com', '');
+      const path = link.getAttribute('href').replace('https://www.saparchitectprep.com', '');
       link.setAttribute('href', '$APP_DOMAIN' + path);
     });
   });
