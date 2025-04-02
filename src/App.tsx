@@ -187,7 +187,7 @@ function Dashboard() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 pb-20 md:pb-0">
       <h1 className="text-3xl md:text-4xl font-bold text-gray-900 text-center">
-        Welcome to SAP Architect Exam Prep
+        Welcome to SAPArchitectPrep
       </h1>
       <p className="text-lg md:text-xl text-gray-600 max-w-2xl text-center px-4">
         Your comprehensive preparation platform for SAP Architect certification exams.
@@ -217,7 +217,7 @@ function Dashboard() {
               fontSize="20px"
               fontWeight="bold"
               fill="#333">
-          SAP Architect Exam Prep
+          SAPArchitectPrep
         </text>
         
         {/* Subtext */}

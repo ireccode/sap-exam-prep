@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 export function LoginForm() {
   const [isRegister, setIsRegister] = useState(false);
@@ -28,7 +29,15 @@ export function LoginForm() {
 
       if (error) throw error;
 
-      // Successful login/register - redirect to the specified URL
+      if (isRegister) {
+        toast.success('Check your email to confirm your account');
+        setIsRegister(false); // Switch back to login form
+        setEmail('');
+        setPassword('');
+        return;
+      }
+
+      // Successful login - redirect to the specified URL
       navigate(redirectTo);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');

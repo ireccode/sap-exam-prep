@@ -1,4 +1,4 @@
-# SAP Architect Exam Prep Application
+# SAPArchitectPrep Application
 
 A modern web application designed to help users prepare for SAP Architect certification exams. Built with React, Vite, and Supabase, featuring premium content and subscription-based access.
 
@@ -174,7 +174,7 @@ The application source code (excluding question bank content) is licensed under 
 ```
 MIT License
 
-Copyright (c) 2024 SAP Architect Exam Prep
+Copyright (c) 2024 SAPArchitectPrep
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), excluding

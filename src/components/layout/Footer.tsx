@@ -9,7 +9,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center mb-4 md:mb-0">
             <Shield className="h-6 w-6 text-blue-600 mr-2" />
-            <span className="text-gray-600 font-medium">SAP Architect Exam Prep</span>
+            <span className="text-gray-600 font-medium">SAPArchitectPrep</span>
           </div>
 
           <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
@@ -27,7 +27,7 @@ export function Footer() {
               Contact Support
             </Link>
             <span className="text-gray-400">•</span>
-            <span className="text-gray-500">© {new Date().getFullYear()} SAP Architect Exam Prep</span>
+            <span className="text-gray-500">© {new Date().getFullYear()} SAPArchitectPrep</span>
           </div>
         </div>
       </div>

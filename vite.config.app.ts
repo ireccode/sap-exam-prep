@@ -29,7 +29,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         headers: {
-          'X-Title': 'SAP Architect Exam Prep',
+          'X-Title': 'SAPArchitectPrep',
           'HTTP-Referer': `https://${targetDomain}`,
         },
       }

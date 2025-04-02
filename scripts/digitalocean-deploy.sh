@@ -143,7 +143,7 @@ if [ ! -f "dist/404.html" ]; then
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Not Found | SAP Architect Exam Prep</title>
+  <title>Page Not Found | SAPArchitectPrep</title>
   <script>
     // Cascading Fallback Routing System
     (function() {

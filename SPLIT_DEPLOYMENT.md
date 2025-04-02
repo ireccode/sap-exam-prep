@@ -1,6 +1,6 @@
 # Split Deployment Strategy
 
-This document outlines the proper approach for deploying the SAP Architect Exam Prep application as two separate sites on DigitalOcean App Platform.
+This document outlines the proper approach for deploying the SAPArchitectPrep application as two separate sites on DigitalOcean App Platform.
 
 ## Overview
 

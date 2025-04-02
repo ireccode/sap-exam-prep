@@ -54,7 +54,7 @@ if ! grep -q "src=\"/assets/" app-dist/index.html; then
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAP Architect Exam Prep</title>
+  <title>SAPArchitectPrep</title>
   <link rel="stylesheet" href="/assets/$MAIN_CSS_FILE">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline';">
 </head>

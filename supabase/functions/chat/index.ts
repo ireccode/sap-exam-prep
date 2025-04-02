@@ -43,7 +43,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${openRouterKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://sap-architect-exam-prep.netlify.app',
-        'X-Title': 'SAP Architect Exam Prep'
+        'X-Title': 'SAPArchitectPrep'
       },
       body: JSON.stringify({
         model: modelId || MODELS[0].id, // Use first model as default

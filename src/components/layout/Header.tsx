@@ -32,7 +32,7 @@ export function Header() {
         >
           <Shield className="h-6 w-6 text-blue-600" />
           <span className="text-lg sm:text-xl font-bold">
-            <span className="hidden sm:inline">SAP Architect Exam Prep</span>
+            <span className="hidden sm:inline">SAPArchitectPrep</span>
             <span className="sm:hidden">SAP Exam Prep</span>
           </span>
         </button>

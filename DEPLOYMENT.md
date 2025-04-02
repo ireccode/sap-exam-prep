@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide explains how to deploy the SAP Architect Exam Prep application using Docker and Docker Swarm.
+This guide explains how to deploy the SAPArchitectPrep application using Docker and Docker Swarm.
 
 ## Prerequisites
 

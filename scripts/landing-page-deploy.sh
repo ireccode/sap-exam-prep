@@ -77,7 +77,7 @@ if [ ! -f "landing-page-dist/404.html" ]; then
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Not Found - SAP Architect Exam Prep</title>
+  <title>Page Not Found - SAPArchitectPrep</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
