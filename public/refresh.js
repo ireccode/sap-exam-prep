@@ -2,49 +2,65 @@
 // This script handles route-specific issues and history management
 
 (function() {
-  // More aggressive history cleanup when it gets too large
-  if (window.history.length > 15) {
-    console.log('[Route Fix] History too large:', window.history.length);
-    
-    try {
-      // Store current location
-      const currentPath = window.location.pathname;
-      const currentUrl = window.location.href;
+  // Constants for history management
+  const MAX_HISTORY_LENGTH = 20;
+  const CLEANUP_COOLDOWN = 30000; // 30 seconds
+
+  // Improved history management function
+  function manageHistory() {
+    if (window.history.length > MAX_HISTORY_LENGTH) {
+      const lastCleanup = parseInt(sessionStorage.getItem('lastCleanup') || '0');
       
-      // History replacement approach
-      // This forces a reload but with a clean history
-      if (window.history.length > 25) {
-        console.log('[Route Fix] Performing hard history reset');
-        sessionStorage.setItem('return_to_path', currentPath);
-        window.location.replace(currentUrl);
-        return; // Stop execution to allow redirect
+      if (Date.now() - lastCleanup > CLEANUP_COOLDOWN) {
+        console.log('[Route Fix] Performing history cleanup. Length:', window.history.length);
+        window.history.replaceState({ clean: true }, '', window.location.href);
+        sessionStorage.setItem('lastCleanup', Date.now().toString());
+      } else {
+        console.log('[Route Fix] Skipping cleanup, cooling down. Last cleanup:', Math.round((Date.now() - lastCleanup) / 1000), 'seconds ago');
       }
-      
-      // For moderate cases, try to compact history
-      if (sessionStorage.getItem('history_cleaned_timestamp')) {
-        // Don't repeat cleanup too often
-        const lastCleanup = parseInt(sessionStorage.getItem('history_cleaned_timestamp') || '0');
-        const timeSince = Date.now() - lastCleanup;
-        
-        if (timeSince < 60000) { // Less than 1 minute ago
-          console.log('[Route Fix] Skipping cleanup, last done', Math.round(timeSince/1000), 'seconds ago');
-          return;
-        }
-      }
-      
-      // Try to compact history by replacing state
-      console.log('[Route Fix] Compacting history');
-      
-      // Replace the current URL in history
-      window.history.replaceState({clean: true}, document.title, currentUrl);
-      
-      // Track cleanup
-      sessionStorage.setItem('history_cleaned_timestamp', Date.now().toString());
-      sessionStorage.setItem('history_length_before', window.history.length.toString());
-    } catch (e) {
-      console.error('[Route Fix] Error cleaning history:', e);
     }
   }
+
+  // Call history management on load
+  manageHistory();
+
+  // State management for routes
+  function saveRouteState(routePath) {
+    try {
+      sessionStorage.setItem(routePath, JSON.stringify({
+        timestamp: Date.now(),
+        state: window.history.state
+      }));
+    } catch (e) {
+      console.error('[Route Fix] Error saving route state:', e);
+    }
+  }
+
+  // Smart cleanup for stored route states
+  function smartCleanup() {
+    try {
+      const storedRoutes = Object.keys(sessionStorage)
+        .filter(key => key.startsWith('/'))
+        .map(key => ({
+          key,
+          timestamp: JSON.parse(sessionStorage.getItem(key) || '{"timestamp":0}').timestamp
+        }));
+      
+      // Remove oldest 25% of routes when exceeding capacity
+      if (storedRoutes.length > 15) {
+        console.log('[Route Fix] Cleaning up old route states. Count:', storedRoutes.length);
+        storedRoutes
+          .sort((a,b) => a.timestamp - b.timestamp)
+          .slice(0, Math.floor(storedRoutes.length * 0.25))
+          .forEach(({key}) => sessionStorage.removeItem(key));
+      }
+    } catch (e) {
+      console.error('[Route Fix] Error in smartCleanup:', e);
+    }
+  }
+
+  // Save current route state
+  saveRouteState(window.location.pathname);
   
   // Check if we need to restore path after hard reset
   if (sessionStorage.getItem('return_to_path')) {
@@ -58,14 +74,29 @@
     }
   }
   
-  // Check if we're returning after a page reload with auth issues
-  window.addEventListener('DOMContentLoaded', function() {
-    const isAiChatRoute = window.location.pathname === '/aichat';
-    const hadError = localStorage.getItem('ai_chat_had_error') === 'true';
+  // Route integration - detect navigation via history API
+  const originalPushState = window.history.pushState;
+  window.history.pushState = function(state, title, url) {
+    originalPushState.apply(this, arguments);
     
-    if (isAiChatRoute && hadError) {
-      console.log('[Route Fix] Detected previous error, clearing for fresh state');
-      localStorage.removeItem('ai_chat_had_error');
+    // Save previous route
+    sessionStorage.setItem('previousRoute', sessionStorage.getItem('currentRoute') || '');
+    
+    // Set current route if URL is valid
+    if (url) {
+      try {
+        const newPath = new URL(url, window.location.origin).pathname;
+        sessionStorage.setItem('currentRoute', newPath);
+        saveRouteState(newPath);
+      } catch (e) {
+        console.error('[Route Fix] Error processing URL:', e);
+      }
     }
-  });
+    
+    // Run smart cleanup after navigation
+    smartCleanup();
+  };
+  
+  // Run clean up periodically
+  setInterval(smartCleanup, 60000); // Every minute
 })(); 
