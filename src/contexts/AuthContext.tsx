@@ -50,8 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const lastSignInTime = useRef<number>(0);
   const DEBOUNCE_DELAY = 1000; // 1 second
 
-  // Initialize UserService
-  const userService = new UserService(supabase);
+  // We don't use public.users table, but keep the import for type compatibility
+  // const userService = new UserService(supabase);
 
   useEffect(() => {
     let mounted = true;
@@ -209,48 +209,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No user found');
       }
 
-      // For sign up, we don't need to fetch the user record as it's just been created
-      const userRecordPromise = isSignUp 
-        ? Promise.resolve(null)
-        : userService.getUserById(userId).catch(error => {
-            if (error.code === 'PGRST116' && isSignUp) {
-              // Expected during sign up
-              console.log('Note: User record not found (expected during sign up)');
-              return null;
-            }
-            console.error('Error fetching user record:', error);
-            return null;
-          });
-
-      // Fetch both profile and user record
-      const [profileResponse, userRecordResult] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).single(),
-        userRecordPromise
-      ]);
+      // Fetch the profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
       // Handle profile
-      let profile = profileResponse.data;
-      if (profileResponse.error) {
-        console.log('Profile not found, attempting to create one');
-        profile = await createProfile(userId, user.email || '');
+      if (profileError) {
+        console.log('Profile not found or error:', profileError.code, profileError.message);
+        console.log('Attempting to create profile for user:', userId);
         
-        if (!profile) {
-          console.error('Failed to create profile');
-          throw new Error('Failed to create profile');
+        // Try to create profile directly
+        const newProfile = await createProfile(userId, user.email || '');
+        
+        if (!newProfile) {
+          console.warn('Failed to create profile, will proceed with null profile');
         }
+        
+        setState({
+          session: null,
+          user,
+          userRecord: null, // No userRecord - not using public.users
+          profile: newProfile,
+          loading: false,
+          error: null,
+        });
+      } else {
+        console.log('Fetched profile:', profile);
+
+        setState({
+          session: null,
+          user,
+          userRecord: null, // No userRecord - not using public.users
+          profile,
+          loading: false,
+          error: null,
+        });
       }
-
-      console.log('Fetched profile:', profile);
-      console.log('Fetched user record:', userRecordResult);
-
-      setState({
-        session: null,
-        user,
-        userRecord: userRecordResult,
-        profile,
-        loading: false,
-        error: null,
-      });
     } catch (error) {
       console.error('Error fetching user data:', error);
       setState(s => ({ 
@@ -364,25 +361,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User signed up successfully:', authData.user.id);
 
-      // Create initial user record
-      try {
-        const userRecord = await userService.createInitialUser({
-          id: authData.user.id,
-          email: authData.user.email || '',
-          credits: 0,
-          web_ui_enabled: false,
-          role: 'user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-        console.log('Created initial user record:', userRecord);
-
-        // After creating user record, fetch user data with isSignUp flag
-        await fetchUserData(authData.user.id, true);
-      } catch (userError) {
-        // Log but don't throw - user record might already exist
-        console.log('Note: User record creation resulted in:', userError);
-      }
+      // Let the database trigger handle_new_user() create the profile
+      // and wait a moment to allow the database triggers to execute
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Fetch user data with isSignUp flag
+      await fetchUserData(authData.user.id, true);
 
       return { error: null };
     } catch (error) {
@@ -466,16 +450,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!state.user) throw new Error('No user logged in');
 
-      setState(s => ({ ...s, loading: true }));
-
-      const updatedRecord = await userService.upsertUser({
-        ...updates,
-        id: state.user.id
-      });
+      console.log('Skipping user record update (using auth.users):', updates);
+      
+      // Since we don't use public.users table, we just log the attempt
+      // and return a mock updated record for backward compatibility
+      const mockUpdatedRecord: UserRecord = {
+        id: state.user.id,
+        email: state.user.email || '',
+        credits: updates.credits || 0,
+        web_ui_enabled: updates.web_ui_enabled || false,
+        role: updates.role || 'user',
+        created_at: state.user.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
       setState(s => ({
         ...s,
-        userRecord: updatedRecord,
+        userRecord: mockUpdatedRecord,
         loading: false
       }));
 
