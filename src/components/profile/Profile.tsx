@@ -70,7 +70,7 @@ export const Profile = () => {
         toast.error('Please enter a valid email address');
         return;
       }
-      
+      // using magicLink method - customised by adding emailRedirectTo and using inviteUser email temaplate in Suppabase/Email/Templates
       const { error } = await supabase.auth.signInWithOtp({
         email: friendEmail,
         options: {

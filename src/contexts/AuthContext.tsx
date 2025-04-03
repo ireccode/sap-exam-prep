@@ -93,8 +93,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   }
                   lastSignInTime.current = now;
 
-                  // First fetch user data
-                  await fetchUserData(session.user.id);
+                  // Check if this is a new user signup by looking at the URL
+                  const isNewSignup = window.location.href.includes('type=signup');
+                  console.log('Is new signup:', isNewSignup);
+
+                  // First fetch user data with isSignUp flag for new users
+                  await fetchUserData(session.user.id, isNewSignup);
                   
                   // Then check subscription status
                   console.log('Checking subscription after sign in');
@@ -196,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function fetchUserData(userId: string, isSignUp = false) {
-    console.log('Fetching user data for:', userId);
+    console.log('Fetching user data for:', userId, 'isSignUp:', isSignUp);
     try {
       // Get the current session to ensure we have a fresh user object
       const { data: { user } } = await supabase.auth.getUser();
