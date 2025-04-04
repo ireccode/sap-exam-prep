@@ -18,7 +18,7 @@ export function ContactForm() {
     setError(null);
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/narkanie00@gmail.com', {
+      const response = await fetch('https://formsubmit.co/ajax/support@saparchitectprep.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

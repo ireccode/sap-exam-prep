@@ -26,7 +26,8 @@ app.use(helmet({
         "https://cdnjs.cloudflare.com",
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
-        "https://ssl.google-analytics.com"
+        "https://ssl.google-analytics.com",
+        "https://web.cmp.usercentrics.eu"
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:", "https://www.google-analytics.com"],

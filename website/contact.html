@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/images/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://web.cmp.usercentrics.eu; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https: https://www.google-analytics.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com https://formsubmit.co https://www.google-analytics.com https://analytics.google.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'; form-action 'self' https://formsubmit.co">
     <meta name="description" content="Contact SAP Architect Certification Exam Preparation Support Team">
     <title>Contact Us | SAP Architect Certification Exam Preparation</title>
     
@@ -12,6 +13,24 @@
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <script id="usercentrics-cmp" src="https://web.cmp.usercentrics.eu/ui/loader.js" data-settings-id="FD1Rjc5NUBwzNd" async></script>    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9TEMGNV8NV"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-9TEMGNV8NV');
+    </script>
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-WNZ7QPBM');</script>
+    <!-- End Google Tag Manager -->
     
     <style>
       .contact-container {
@@ -129,6 +148,11 @@
     </style>
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNZ7QPBM"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
     <!-- Header -->
     <header class="header">
         <nav class="nav container">
@@ -156,7 +180,7 @@
         </div>
 
         <div class="contact-form">
-            <form id="contactForm" method="POST">
+            <form id="contactForm" method="POST" action="https://formsubmit.co/support@saparchitectprep.com">
                 <input type="hidden" name="_subject" value="SAP Exam Prep Contact Form">
                 <input type="hidden" name="_captcha" value="true">
                 <input type="hidden" name="_next" value="https://www.saparchitectprep.com/contact.html?success=true">
@@ -265,8 +289,7 @@
                 const formData = new FormData(contactForm);
                 
                 // Send the form data to FormSubmit.co using fetch API
-                //fetch("https://formsubmit.co/ajax/support@saparchitectprep.com", {
-                fetch("https://formsubmit.co/ajax/narkanie00@gmail.com", {                    
+                fetch("https://formsubmit.co/ajax/support@saparchitectprep.com", {                
                     method: "POST",
                     headers: {
                         'Accept': 'application/json',

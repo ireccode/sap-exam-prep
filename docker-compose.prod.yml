@@ -72,9 +72,9 @@ services:
       - ./.env.production:/usr/share/nginx/html/.env
       - ./dist:/usr/share/nginx/html:ro
     environment:
-      - NGINX_HOST=examprep.techtreasuretrove.in
+      - NGINX_HOST=saparchitectprep.com
       - NGINX_PORT=443
-      - NGINX_CERT_EMAIL=narkanie00@gmail.com
+      - NGINX_CERT_EMAIL=support@saparchitectprep.com
     command: |
       /bin/sh -c "
       apk add --no-cache openssl curl bind-tools certbot certbot-nginx &&
