@@ -48,7 +48,7 @@ app.use(helmet({
         "https://consent-rt-ret.service.consent.usercentrics.eu",
         "https://graphql.usercentrics.eu"
       ],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://www.googletagmanager.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
       fontSrc: ["'self'", "data:", "https://cdnjs.cloudflare.com"]
     }
