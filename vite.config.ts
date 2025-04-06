@@ -160,6 +160,23 @@ const spaFallbackPlugin = (): Plugin => ({
   }
 });
 
+// Custom plugin to modify Content Security Policy
+const cspHeadersPlugin = (): Plugin => ({
+  name: 'csp-headers-plugin',
+  configureServer(server) {
+    return () => {
+      server.middlewares.use((req, res, next) => {
+        // Add CSP header to all responses
+        res.setHeader(
+          'Content-Security-Policy',
+          "default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://web.cmp.usercentrics.eu; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https: https://www.google-analytics.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://*.usercentrics.eu https://v1.api.service.cmp.usercentrics.eu https://web.cmp.usercentrics.eu https://consent-api.service.consent.usercentrics.eu https://consent-rt-ret.service.consent.usercentrics.eu https://email-worker.narkanie00.workers.dev; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'; form-action 'self'; font-src 'self' data: https://cdnjs.cloudflare.com"
+        );
+        next();
+      });
+    };
+  }
+});
+
 // Get environment variables with fallbacks
 const getEnvVar = (key: string, defaultValue: string): string => {
   return process.env[key] || defaultValue;
@@ -175,6 +192,7 @@ export default defineConfig({
     copyPublicFiles(),
     copyWebsiteFiles(),
     spaFallbackPlugin(),
+    cspHeadersPlugin(),
   ],
   server: {
     host: true,

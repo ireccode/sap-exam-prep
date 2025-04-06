@@ -27,7 +27,8 @@ app.use(helmet({
         "https://www.googletagmanager.com",
         "https://www.google-analytics.com",
         "https://ssl.google-analytics.com",
-        "https://web.cmp.usercentrics.eu"
+        "https://web.cmp.usercentrics.eu",
+        "https://*.usercentrics.eu"
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:", "https://www.google-analytics.com"],
@@ -36,14 +37,20 @@ app.use(helmet({
         "https://*.supabase.co", 
         "wss://*.supabase.co", 
         "https://openrouter.ai", 
-        "https://api.stripe.com", 
-        "https://formsubmit.co",
+        "https://api.stripe.com",
         "https://www.google-analytics.com",
-        "https://analytics.google.com"
+        "https://analytics.google.com",
+        "https://email-worker.narkanie00.workers.dev",
+        "https://*.usercentrics.eu",
+        "https://v1.api.service.cmp.usercentrics.eu",
+        "https://web.cmp.usercentrics.eu",
+        "https://consent-api.service.consent.usercentrics.eu",
+        "https://consent-rt-ret.service.consent.usercentrics.eu",
+        "https://graphql.usercentrics.eu"
       ],
       frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
       scriptSrcAttr: ["'unsafe-inline'"],
-      formAction: ["'self'", "https://formsubmit.co"]
+      fontSrc: ["'self'", "data:", "https://cdnjs.cloudflare.com"]
     }
   }
 }));

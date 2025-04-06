@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
+// Cloudflare Email Worker URL - update this to your custom domain when available
+const EMAIL_WORKER_URL = 'https://email-worker.narkanie00.workers.dev';
+
 export function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -18,26 +21,30 @@ export function ContactForm() {
     setError(null);
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/support@saparchitectprep.com', {
+      // Send data to the Cloudflare Email Worker
+      const response = await fetch(EMAIL_WORKER_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...formData,
-          _subject: `SAP Exam Prep Contact: ${formData.subject}`,
-        })
+        body: JSON.stringify(formData)
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      // Handle warning but still show success
+      if (data.warning) {
+        console.warn('Warning from email service:', data.warning);
       }
 
       setSuccess(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err) {
-      setError('Failed to send message. Please try again later.');
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }

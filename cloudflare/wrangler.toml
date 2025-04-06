@@ -1,0 +1,13 @@
+name = "email-worker"
+main = "send-email-worker.ts"
+compatibility_date = "2024-04-05"
+
+[[send_email]]
+name = "SEND_EMAIL"
+destination_address = "support@saparchitectprep.com"
+
+[site]
+bucket = "./public" 
+
+[observability.logs]
+enabled = true
