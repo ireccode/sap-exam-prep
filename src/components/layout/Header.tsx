@@ -19,8 +19,9 @@ export function Header() {
   };
 
   const handleSignOut = async () => {
+    // Just call signOut - it will handle navigation to login page
     await signOut();
-    navigate('/login');
+    // No need to navigate here as AuthContext will handle it
   };
 
   return (

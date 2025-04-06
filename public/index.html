@@ -4,26 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://web.cmp.usercentrics.eu; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https: https://www.google-analytics.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com https://formsubmit.co https://www.google-analytics.com https://analytics.google.com https://v1.api.service.cmp.usercentrics.eu https://web.cmp.usercentrics.eu; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'; form-action 'self' https://formsubmit.co; font-src 'self' data: https://cdnjs.cloudflare.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.supabase.co https://openrouter.ai; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://js.stripe.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://web.cmp.usercentrics.eu; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https: https://www.google-analytics.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.stripe.com https://www.google-analytics.com https://analytics.google.com https://*.usercentrics.eu https://v1.api.service.cmp.usercentrics.eu https://web.cmp.usercentrics.eu https://consent-api.service.consent.usercentrics.eu https://consent-rt-ret.service.consent.usercentrics.eu https://email-worker.narkanie00.workers.dev; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; script-src-attr 'unsafe-inline'; form-action 'self'; font-src 'self' data: https://cdnjs.cloudflare.com">
     <title>SAPArchitectPrep</title>
-    
-    <!-- Usercentrics Consent Management -->
-    <script id="usercentrics-cmp" src="https://web.cmp.usercentrics.eu/ui/loader.js" data-settings-id="FD1Rjc5NUBwzNd" async></script>
-    
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-WNZ7QPBM');</script>
-    <!-- End Google Tag Manager -->
+    <!-- Scripts will be dynamically loaded by React -->
   </head>
   <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNZ7QPBM"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    
     <div id="root"></div>
     <script type="module" src="src/main.tsx"></script>
   </body>

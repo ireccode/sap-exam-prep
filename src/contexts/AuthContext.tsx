@@ -391,9 +391,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading: false,
         error: null,
       });
+      
+      // Force a page reload after a short delay to ensure complete state reset
+      console.log('Sign out successful, reloading page...');
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 300);
     } catch (error) {
       console.error('Sign out error:', error);
       setState(s => ({ ...s, loading: false }));
+      
+      // Even if there's an error, force a reload to recover
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 500);
     }
   }
 

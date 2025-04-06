@@ -108,6 +108,52 @@ const SafeRoadmap = () => (
 );
 
 export function App() {
+  // Dynamically load Usercentrics only in production
+  useEffect(() => {
+    // Only load Usercentrics on production domains
+    if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+      console.log('Loading Usercentrics CMP (production environment)');
+      
+      // Remove any existing script to avoid duplicates
+      const existingScript = document.getElementById('usercentrics-cmp');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      
+      // Create and append the script
+      const script = document.createElement('script');
+      script.id = 'usercentrics-cmp';
+      script.src = 'https://web.cmp.usercentrics.eu/ui/loader.js';
+      script.setAttribute('data-settings-id', 'FD1Rjc5NUBwzNd');
+      script.async = true;
+      document.head.appendChild(script);
+      
+      // Also load Google Tag Manager for production
+      const gtmScript = document.createElement('script');
+      gtmScript.innerHTML = `
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-WNZ7QPBM');
+      `;
+      document.head.appendChild(gtmScript);
+      
+      // Add GTM noscript iframe
+      const noscriptElement = document.createElement('noscript');
+      const iframeElement = document.createElement('iframe');
+      iframeElement.src = "https://www.googletagmanager.com/ns.html?id=GTM-WNZ7QPBM";
+      iframeElement.height = "0";
+      iframeElement.width = "0";
+      iframeElement.style.display = "none";
+      iframeElement.style.visibility = "hidden";
+      noscriptElement.appendChild(iframeElement);
+      document.body.insertBefore(noscriptElement, document.body.firstChild);
+    } else {
+      console.log('Skipping Usercentrics CMP (development environment)');
+    }
+  }, []);
+  
   // Reset any fallback attempts when the app loads
   useEffect(() => {
     resetAllFallbackAttempts();
