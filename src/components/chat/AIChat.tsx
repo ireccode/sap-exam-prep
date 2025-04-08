@@ -37,6 +37,7 @@ export function AIChat() {
   const navigate = useNavigate();
   const previousPath = useExamStore(state => state.previousPath);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Create AI service
   const aiService = useRef(new AIService(ragContext));
@@ -50,8 +51,17 @@ export function AIChat() {
 
   const handleModelChange = async (modelId: string) => {
     try {
+      // Find the last user message
+      const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
+      
+      // Update the model
       await aiService.current.setModel(modelId);
       setSelectedModel(modelId);
+      
+      // If there was a last user message, copy it to the input field
+      if (lastUserMessage) {
+        setInput(lastUserMessage.content);
+      }
     } catch (error) {
       console.error('Error changing model:', error);
       setError(error instanceof Error ? error.message : 'Failed to change model');
@@ -186,6 +196,7 @@ export function AIChat() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question..."
             className="flex-1 p-2 border rounded"
+            ref={inputRef}
             onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
             disabled={isLoading}
           />
