@@ -1,0 +1,70 @@
+# robots.txt for saparchitectprep.com
+# Block crawlers from accessing common WordPress paths and other bot targets
+
+User-agent: *
+# Allow access to main public pages
+Allow: /$
+Allow: /index.html
+Allow: /assets/
+Allow: /images/
+Allow: /app/login
+Allow: /app/register
+Allow: /contact.html
+Allow: /terms.html
+
+# Block access to admin paths
+Disallow: /admin/
+Disallow: /wp-admin/
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /logout/
+Disallow: /wp-login/
+Disallow: /wp-content/
+Disallow: /wp-includes/
+Disallow: */wp-includes/
+Disallow: */wlwmanifest.xml
+Disallow: */xmlrpc.php
+Disallow: /blog/
+Disallow: /wordpress/
+Disallow: /wp/
+Disallow: /web/
+Disallow: /cms/
+Disallow: /test/
+Disallow: /site/
+Disallow: /sito/
+Disallow: /shop/
+Disallow: /news/
+Disallow: /media/
+Disallow: /wp1/
+Disallow: /wp2/
+Disallow: /2018/
+Disallow: /2019/
+Disallow: /setup-config.php
+
+# Block known bot paths
+Disallow: /.env
+Disallow: /.git/
+Disallow: /.well-known/
+Disallow: /cgi-bin/
+Disallow: /includes/
+Disallow: /tmp/
+Disallow: /temp/
+Disallow: /install/
+Disallow: /database/
+Disallow: /config/
+Disallow: /backup/
+Disallow: /old/
+Disallow: /new/
+Disallow: /demo/
+
+# Block WordPress theme paths
+Disallow: /themes/
+Disallow: /plugins/
+
+# Additional security measures
+Disallow: /*?
+Disallow: /*=
+Disallow: /*&
+
+# Specify the path to your sitemap
+Sitemap: https://www.saparchitectprep.com/sitemap.xml

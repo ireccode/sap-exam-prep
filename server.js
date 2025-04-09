@@ -133,6 +133,12 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Serve robots.txt with proper headers
+app.get('/robots.txt', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.sendFile(path.join(__dirname, 'public/robots.txt'));
+});
+
 // Special handler for all encrypted files to ensure proper MIME type
 app.get('/*.encrypted', (req, res, next) => {
   const filePath = path.join(__dirname, req.path);
