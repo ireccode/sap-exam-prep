@@ -136,7 +136,7 @@ app.get('/health', (req, res) => {
 // Serve robots.txt with proper headers
 app.get('/robots.txt', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  res.sendFile(path.join(__dirname, 'public/robots.txt'));
+  res.sendFile(path.join(__dirname, 'robots.txt'));
 });
 
 // Special handler for all encrypted files to ensure proper MIME type
