@@ -48,7 +48,9 @@ export function SubscriptionStatus() {
           
           {subscription && (
             <div className="text-sm text-gray-600">
-              <p>Status: {subscription.status}</p>
+              <p>Status: {subscription.status}
+              </p>
+              <p>Current Period Starts: {new Date(subscription.current_period_start).toLocaleDateString()}</p>
               <p>Current Period Ends: {new Date(subscription.current_period_end).toLocaleDateString()}</p>
               {subscription.cancel_at_period_end && (
                 <p className="text-orange-600">

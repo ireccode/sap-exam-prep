@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/types/supabase';
-import { SubscriptionStatus } from './SubscriptionStatus';
+
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -54,7 +54,7 @@ export function ProfileForm() {
     <div className="max-w-2xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
       
-      <SubscriptionStatus />
+
       
       <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow-md p-6">
         <div>
@@ -95,20 +95,6 @@ export function ProfileForm() {
             id="website"
             name="website"
             value={formData.website || ''}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="avatar_url" className="block text-sm font-medium text-gray-700">
-            Avatar URL
-          </label>
-          <input
-            type="url"
-            id="avatar_url"
-            name="avatar_url"
-            value={formData.avatar_url || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           />

@@ -6,6 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { Input } from '@/components/ui/input';
+import { SubscriptionStatus } from './SubscriptionStatus';
 
 export const Profile = () => {
   const [loading, setLoading] = useState(false);
@@ -106,7 +107,7 @@ export const Profile = () => {
     <div className="max-w-2xl mx-auto p-4">
       {/* Profile Form */}
       <ProfileForm />
-      
+      <SubscriptionStatus />            
       {/* Account Actions */}
       <div className="mt-6 space-y-4 bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4">Account Actions</h3>
