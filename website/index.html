@@ -29,35 +29,40 @@
         "@context": "https://schema.org",
         "@type": "Course",
         "name": "SAP Architect Certification Exam Preparation",
-        "description": "Comprehensive AI-powered preparation course for SAP Architect Certification exams including P_BTPA_2408, C_C4HCX_24, and P_SAPEA_2023",
+        "description": "Comprehensive AI-powered preparation course for SAP Architect Certification exams including P_BTPA_2408, C_C4HCX_24, and P_SAPEA_2023.",
         "provider": {
             "@type": "Organization",
-            "name": "SAP Certification Experts",
+            "name": "SAPArchitectPrep",
             "sameAs": "https://www.saparchitectprep.com"
-        },
-        "offers": {
-            "@type": "Offer",
-            "price": "29",
-            "priceCurrency": "AUD",
-            "availability": "https://schema.org/InStock"
         },
         "hasCourseInstance": [
             {
                 "@type": "CourseInstance",
                 "name": "SAP Certified Professional - Solution Architect - SAP BTP (P_BTPA_2408)",
-                "courseMode": "online"
+                "courseMode": "online",
+                "courseWorkload": "10 hours per week"
             },
             {
                 "@type": "CourseInstance",
                 "name": "SAP Certified Associate - Solution Architect - SAP Customer Experience (C_C4HCX_24)",
-                "courseMode": "online"
+                "courseMode": "online",
+                "courseWorkload": "8 hours per week"
             },
             {
                 "@type": "CourseInstance",
                 "name": "SAP Certified Professional - SAP Enterprise Architect (P_SAPEA_2023)",
-                "courseMode": "online"
+                "courseMode": "online",
+                "courseWorkload": "12 hours per week"
             }
-        ]
+        ],
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "AUD",
+            "price": "29.00",
+            "availability": "https://schema.org/InStock",
+            "category": ["Technology", "SAP Certification"],
+            "url": "https://www.saparchitectprep.com/pricing"
+        }
     }
     </script>
     <!-- Usercentrics CMP script -->
@@ -82,12 +87,13 @@
             "name": "SAPArchitectPrep"
         },
         "offers": {
-            "@type": "AggregateOffer",
-            "lowPrice": "0",
-            "highPrice": "29",
-            "priceCurrency": "USD",
-            "offerCount": "2"
-        },
+            "@type": "Offer",
+            "price": "29.00",
+            "priceCurrency": "AUD",
+            "availability": "https://schema.org/InStock",
+            "category": ["Education", "Online Learning", "Professional Certification Training"],
+            "url": "https://www.saparchitectprep.com/#pricing"
+        }
         "review": {
             "@type": "Review",
             "reviewRating": {
