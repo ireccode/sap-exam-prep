@@ -139,7 +139,7 @@ export function AIChat() {
           >
             {MODELS.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.id}
+                {model.name}
               </option>
             ))}
           </select>

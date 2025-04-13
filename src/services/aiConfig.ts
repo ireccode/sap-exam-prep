@@ -8,25 +8,25 @@ export interface ModelConfig {
 
 export const MODELS: ModelConfig[] = [
   {
-    id: 'meta-llama/llama-3.2-11b-vision-instruct:free',
-    name: 'Llama 3.2 11B Vision Instruct ',
-    contextWindow: 4096,
+    id: 'meta-llama/llama-4-scout:free',
+    name: 'Llama 4 Scout',
+    contextWindow: 8096,
     costPer1kTokens: 0.00,
     provider: 'Meta'
   },
   {
-    id: 'mistralai/mistral-7b-instruct',
-    name: 'Mistral 7B',
+    id: 'google/gemini-2.0-flash-thinking-exp:free',
+    name: 'Gemini 2.0 Flash Thinking',
     contextWindow: 8000,
-    costPer1kTokens: 0.0002,
-    provider: 'Mistral AI'
+    costPer1kTokens: 0.00,
+    provider: 'Google'
   },
   {
-    id: 'openai/gpt-3.5-turbo',
-    name: 'GPT-3.5 Turbo',
-    contextWindow: 4096,
-    costPer1kTokens: 0.0015,
-    provider: 'OpenAI'
+    id: 'meta-llama/llama-3.2-11b-vision-instruct:free',
+    name: 'Llama 3.2 11B Vision Instruct',
+    contextWindow: 8096,
+    costPer1kTokens: 0.00,
+    provider: 'Meta'
   }
 ];
 export const systemPrompt = `You are an AI assistant specializing in SAP Business Technology Platform (BTP) architecture. Your primary function is to provide detailed explanations for SAP BTP certification exam questions, specifically for the SAP Certified Professional - Solution Architect - SAP BTP (P_BTPA_2408) certification.
