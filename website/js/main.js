@@ -185,5 +185,133 @@ function initialize() {
     handleFloatingCTA();
 }
 
+// --- AI-Powered Search Bar Logic ---
+
+const searchInput = document.getElementById('ai-search-input');
+const suggestionsBox = document.getElementById('search-suggestions');
+
+// Import topic cluster index
+import { CONTENT_INDEX } from './content-index.js';
+
+// Flatten content index for search
+function flattenContentIndex(contentIndex) {
+  const flat = [];
+  for (const pillar of contentIndex) {
+    for (const cluster of pillar.clusters) {
+      for (const item of cluster.items) {
+        flat.push({
+          ...item,
+          pillar: pillar.pillar,
+          pillarId: pillar.id,
+          cluster: cluster.name,
+          clusterId: cluster.id,
+          keywords: item.tags || [],
+        });
+      }
+    }
+  }
+  return flat;
+}
+
+const SEARCH_INDEX = flattenContentIndex(CONTENT_INDEX);
+
+
+function normalize(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function fuzzyMatch(query, target) {
+  // Basic typo tolerance: check for inclusion, 1-char missing, or swapped
+  if (target.includes(query)) return true;
+  if (Math.abs(target.length - query.length) > 2) return false;
+  let mismatches = 0;
+  for (let i = 0, j = 0; i < query.length && j < target.length;) {
+    if (query[i] === target[j]) {
+      i++; j++;
+    } else {
+      mismatches++;
+      if (mismatches > 1) return false;
+      if (query.length > target.length) i++;
+      else if (query.length < target.length) j++;
+      else { i++; j++; }
+    }
+  }
+  return true;
+}
+
+function getSuggestions(query) {
+  const normQuery = normalize(query);
+  if (!normQuery) return [];
+  // Predict intent: exam, guide, faq, article
+  return SEARCH_INDEX.filter(item =>
+    item.keywords.some(kw => fuzzyMatch(normQuery, normalize(kw))) ||
+    fuzzyMatch(normQuery, normalize(item.title))
+  ).slice(0, 8);
+}
+
+function renderSuggestions(suggestions) {
+  if (!suggestions.length) {
+    suggestionsBox.classList.remove('active');
+    suggestionsBox.innerHTML = '';
+    return;
+  }
+  suggestionsBox.classList.add('active');
+  suggestionsBox.innerHTML = suggestions.map(s =>
+    `<div class="search-bar__suggestion" tabindex="0" data-url="${s.url}">
+      <span class="search-bar__suggestion-type">${s.type}</span> ${s.title}
+      <div class="search-bar__suggestion-meta">
+        <span class="search-bar__suggestion-pillar">${s.pillar}</span>
+        <span class="search-bar__suggestion-cluster">${s.cluster}</span>
+      </div>
+    </div>`
+  ).join('');
+}
+
+if (searchInput) {
+  let debounceTimeout;
+  searchInput.addEventListener('input', e => {
+    clearTimeout(debounceTimeout);
+    const query = e.target.value;
+    debounceTimeout = setTimeout(() => {
+      if (!query.trim()) {
+        renderSuggestions([]);
+        return;
+      }
+      const suggestions = getSuggestions(query);
+      renderSuggestions(suggestions);
+    }, 120);
+  });
+
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggestionsBox.classList.contains('active')) {
+        const first = suggestionsBox.querySelector('.search-bar__suggestion');
+        if (first) first.click();
+      } else {
+        // Natural language question mode
+        handleAiQuestion(searchInput.value);
+      }
+    }
+  });
+}
+
+if (suggestionsBox) {
+  suggestionsBox.addEventListener('mousedown', e => {
+    const target = e.target.closest('.search-bar__suggestion');
+    if (target && target.dataset.url) {
+      window.location.href = target.dataset.url;
+    }
+  });
+}
+
+function handleAiQuestion(question) {
+  // Placeholder: In production, call AI backend or API
+  renderSuggestions([]);
+  showNotification('AI answer: (This would show a smart answer or SAP doc reference for: ' + question + ')', 'info');
+}
+
+// --- End AI Search Bar Logic ---
+
 // Run initialization when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initialize); 

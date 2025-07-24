@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block internal and login pages
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+Disallow: /user/
+
+Sitemap: https://www.saparchitectprep.com/sitemap.xml

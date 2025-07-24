@@ -1,0 +1,15 @@
+# Cloudflare Pages configuration for Vite app
+# This file should be named 'cloudflare-pages.toml' when used in production
+
+[build]
+command = "npm run build"
+
+[build.environment]
+NODE_VERSION = "20"
+
+[site]
+# The directory Cloudflare Pages will serve after build
+bucket = "dist"
+
+[deploy]
+# Optional: custom domain settings can be added here

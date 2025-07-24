@@ -1,0 +1,10 @@
+# Ignore node_modules, logs, build output, system files
+node_modules/
+.DS_Store
+*.log
+*.env
+.sass-cache/
+dist/
+build/
+.cache/
+netlify.toml
