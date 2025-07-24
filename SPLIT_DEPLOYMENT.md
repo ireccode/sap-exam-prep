@@ -7,7 +7,7 @@ This document outlines the proper approach for deploying the SAPArchitectPrep ap
 We need to deploy two separate components:
 
 1. **Marketing Landing Page (Root Domain)**  
-   - Deployed to: `https://www.saparchitectprep.com`
+   - Deployed to: `https://saparchitectprep.com`
    - Contains: Marketing content, feature information, signup/login links
 
 2. **React SPA (Subdomain)**  

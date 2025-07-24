@@ -21,7 +21,7 @@ export const Profile = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       toast.error('Error signing out');
       console.error('Error:', error);

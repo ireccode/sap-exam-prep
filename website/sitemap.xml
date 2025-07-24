@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.saparchitectprep.com/</loc>
+    <loc>https://saparchitectprep.com/</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.saparchitectprep.com/contact.html</loc>
+    <loc>https://saparchitectprep.com/contact.html</loc>
     <lastmod>2025-04-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.saparchitectprep.com/index.html</loc>
+    <loc>https://saparchitectprep.com/index.html</loc>
+    <lastmod>2025-04-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://saparchitectprep.com/privacy.html</loc>
+    <lastmod>2025-04-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://saparchitectprep.com/terms.html</loc>
     <lastmod>2025-04-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
